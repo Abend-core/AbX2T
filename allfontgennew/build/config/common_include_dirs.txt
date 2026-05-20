@@ -1,0 +1,14 @@
+src/DesktopEditor/AllFontsGen
+src/DesktopEditor
+src/DesktopEditor/common
+src/DesktopEditor/fontengine
+src/DesktopEditor/graphics/pro
+src/DesktopEditor/freetype-2.10.4/include
+src/DesktopEditor/freetype-2.10.4/include/freetype
+src/DesktopEditor/freetype_names/freetype-2.5.3/include
+src/DesktopEditor/freetype-2.10.4/src/gzip
+src/DesktopEditor/freetype-2.10.4/src/gzip/src
+src/DesktopEditor/xml/include
+src/UnicodeConverter
+src/OdfFile/Common
+build/shims

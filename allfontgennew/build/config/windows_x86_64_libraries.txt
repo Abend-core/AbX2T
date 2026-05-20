@@ -1,0 +1,5 @@
+Advapi32.lib
+Shell32.lib
+Gdi32.lib
+User32.lib
+Rpcrt4.lib

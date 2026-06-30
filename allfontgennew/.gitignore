@@ -4,3 +4,5 @@ build/generated/
 build/legacy/
 build/out/
 output/
+test/*.pdf
+test/*.docx

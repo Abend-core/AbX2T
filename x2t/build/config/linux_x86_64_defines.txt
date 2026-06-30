@@ -1,0 +1,2 @@
+_LINUX
+__linux__

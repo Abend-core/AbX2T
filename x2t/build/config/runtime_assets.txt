@@ -1,0 +1,8 @@
+../sdkjs
+../dictionaries
+../sdkjs-master/vendor/jquery.min.js
+../sdkjs-master/vendor/xregexp-all-min.js
+../allfontgennew/output/macos-arm64/fonts/AllFonts.js
+../allfontgennew/output/macos-arm64/fonts/font_selection.bin
+../output/macos-arm64/runtime/DoctRenderer.config
+../output/macos-arm64/runtime/fonts/AllFonts.js

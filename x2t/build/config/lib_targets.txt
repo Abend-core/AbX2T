@@ -1,0 +1,13 @@
+CompoundFileLib|src/Common/cfcpp/cfcpp.pro
+VbaFormatLib|src/MsBinaryFile/Projects/VbaFormatLib/Linux/VbaFormatLib.pro
+DocxFormatLib|src/OOXML/Projects/Linux/DocxFormatLib/DocxFormatLib.pro
+PPTXFormatLib|src/OOXML/Projects/Linux/PPTXFormatLib/PPTXFormatLib.pro
+BinDocument|src/OOXML/Projects/Linux/BinDocument/BinDocument.pro
+TxtXmlFormatLib|src/TxtFile/Projects/Linux/TxtXmlFormatLib.pro
+RtfFormatLib|src/RtfFile/Projects/Linux/RtfFormatLib.pro
+PptFormatLib|src/MsBinaryFile/Projects/PPTFormatLib/Linux/PPTFormatLib.pro
+DocFormatLib|src/MsBinaryFile/Projects/DocFormatLib/Linux/DocFormatLib.pro
+OdfFormatLib|src/OdfFile/Projects/Linux/OdfFormatLib.pro
+XlsFormatLib|src/MsBinaryFile/Projects/XlsFormatLib/Linux/XlsFormatLib.pro
+CryptoPPLib|src/Common/3dParty/cryptopp/project/cryptopp.pro
+x2t|src/X2tConverter/build/Qt/X2tConverter.pro

@@ -1,0 +1,17 @@
+kernel
+kernel_network
+graphics
+doctrenderer
+UnicodeConverter
+Fb2File
+PdfFile
+HtmlFile2
+EpubFile
+XpsFile
+OFDFile
+DjVuFile
+DocxRenderer
+IWorkFile
+HWPFile
+StarMathConverter
+ooxmlsignature

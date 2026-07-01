@@ -1,1 +1,2 @@
 src/DesktopEditor/freetype-2.10.4/builds/windows/ftdebug.c
+src/DesktopEditor/freetype-2.10.4/src/gzip/ftgzip.c

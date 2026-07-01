@@ -17,9 +17,9 @@ and successful use of those outputs from `x2t`.
 
 - `src/` must stay upstream-only.
 - All local adaptations must live under `build/`, `test/`, or documentation files.
-- The current validated platform is macOS arm64.
-- The current validated output directory is `output/macos-arm64/fonts`.
-- The current validated x2t test config is `test/config_mac.xml`.
+- Validated platforms: macOS arm64, Windows x86_64.
+- macOS output directory: `output/macos-arm64/fonts`.
+- Windows output directory: `output/windows-x86_64/fonts`.
 
 ## Directory Map
 
@@ -37,23 +37,34 @@ and successful use of those outputs from `x2t`.
 ## Important Files
 
 - `README.md`: top-level entrypoint.
-- `build/scripts/build_macos.sh`: validated macOS arm64 build command.
-- `build/scripts/generate_macos.sh`: validated AllFonts generation command.
-- `build/scripts/prepare_generated_sources.sh`: generated overlay step that disables thumbnail-only dependencies outside `src/`.
-- `build/shims/posix_compat.h`: POSIX header shim injected by the build.
-- `build/shims/freetype_ftoption.h`: FreeType override that disables zlib for this bundle.
+- `build/scripts/build_macos.sh`: validated macOS arm64 build.
+- `build/scripts/generate_macos.sh`: validated AllFonts generation (macOS).
+- `build/scripts/build_windows.ps1`: validated Windows x86_64 build (MSVC).
+- `build/scripts/generate_windows.ps1`: validated AllFonts generation (Windows).
+- `build/scripts/prepare_generated_sources.sh`: overlay step that disables thumbnail deps.
+- `build/shims/posix_compat.h`: POSIX shim force-included on all platforms.
+- `build/shims/freetype_ftoption.h`: FreeType override (disables zlib) for macOS/Linux.
+- `build/shims/allfontsgen_ftoptions.h`: FreeType override (disables zlib) for Windows via FT_CONFIG_OPTIONS_H.
 - `build/config/common_sources.txt`: common compilation units.
 - `build/config/common_include_dirs.txt`: include roots.
 - `build/config/common_defines.txt`: shared compile defines.
-- `build/config/macos_arm64_sources.txt`: macOS-only sources.
-- `build/config/macos_arm64_defines.txt`: macOS-only defines.
-- `build/config/macos_arm64_frameworks.txt`: macOS frameworks.
-- `test/config_mac.xml`: validated x2t test config for macOS.
+- `build/config/windows_x86_64_sources.txt`: Windows-only sources.
+- `build/config/windows_x86_64_defines.txt`: Windows-only defines (incl. FT macros).
+- `build/config/windows_x86_64_libraries.txt`: Windows link libraries.
+- `test/config_mac.xml`: x2t test config for macOS.
+- `test/config_windows.xml`: x2t test config for Windows.
 
 ## Validated Runtime Paths
 
+### macOS arm64
 - Binary: `build/bin/macos-arm64/allfontsgen`
 - Generated fonts: `output/macos-arm64/fonts`
+
+### Windows x86_64
+- Binary: `build/bin/windows-x86_64/allfontsgen.exe`
+- Generated fonts: `output/windows-x86_64/fonts`
+
+### Test assets (all platforms)
 - x2t test input: `test/Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.docx`
 - x2t test output: `test/Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.pdf`
 

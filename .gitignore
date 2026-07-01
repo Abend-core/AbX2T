@@ -13,3 +13,16 @@
 /x2t/output/
 /x2t/test/*.pdf
 /x2t/test/asc*/
+
+# allfontgennew : artefacts de build et sorties générées
+/allfontgennew/build/out/
+/allfontgennew/build/bin/
+/allfontgennew/build/generated/
+/allfontgennew/output/
+/allfontgennew/test/*.pdf
+
+# convert : binaires et artefacts de build
+/convert/out/
+/convert/convert/bin/
+/convert/convert/obj/
+/convert-windows-x64.zip

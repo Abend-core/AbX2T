@@ -2,6 +2,6 @@
 <TaskQueueDataConvert>
     <m_sFileFrom>/Users/hlm/Desktop/AbX2T/allfontgennew/test/Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.docx</m_sFileFrom>
     <m_sFileTo>/Users/hlm/Desktop/AbX2T/x2t/test/Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.pdf</m_sFileTo>
-    <m_sAllFontsPath>/Users/hlm/Desktop/AbX2T/output/macos-arm64/runtime/fonts/AllFonts.js</m_sAllFontsPath>
-    <m_sFontDir>/Users/hlm/Desktop/AbX2T/output/macos-arm64/runtime/fonts</m_sFontDir>
+    <m_sAllFontsPath>/Users/hlm/Desktop/AbX2T/x2t/sdkjs/common/AllFonts.js</m_sAllFontsPath>
+    <m_sFontDir>/Users/hlm/Desktop/AbX2T/allfontgennew/output/macos-arm64/fonts</m_sFontDir>
 </TaskQueueDataConvert>

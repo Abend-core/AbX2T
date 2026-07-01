@@ -9,5 +9,6 @@
 # x2t : contenu généré par les scripts de sync
 /x2t/src/
 /x2t/sdkjs/
+/x2t/bin/
 /x2t/output/
 /x2t/test/*.pdf

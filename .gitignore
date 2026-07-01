@@ -23,8 +23,10 @@
 
 # convert : binaires et artefacts de build
 /convert/out/
+/convert/out_final/
 /convert/convert/bin/
 /convert/convert/obj/
+/convert/convert/assets.zip
 /convert-windows-x64.zip
 
 /convert/*.pdf

@@ -6,25 +6,26 @@ Toolkit de conversion et de generation de polices ONLYOFFICE, adapte macOS arm64
 
 ```
 workspace/
-├── x2t/              Convertisseur de documents (docx/xlsx/pptx → pdf, etc.)
-├── allfontgennew/    Generateur d'index de polices AllFonts.js
-├── output/           Runtime assemble (gitignore, genere localement)
-├── core-master/      Sources upstream ONLYOFFICE core (gitignore, optionnel)
-└── sdkjs-master/     Sources upstream ONLYOFFICE sdkjs (gitignore, optionnel)
+├── x2t/              Convertisseur de documents (docx/xlsx/pptx → pdf, etc.) — depuis release officielle
+├── allfontgennew/    Generateur d'index de polices AllFonts.js — compile depuis core-master
+└── core-master/      Sources upstream ONLYOFFICE core (gitignore, requis pour allfontgennew)
 ```
+
+x2t n'est plus compile depuis les sources : le binaire et son runtime JS sont recuperes
+directement depuis une release officielle ONLYOFFICE (`x2t/build/scripts/sync_from_release.sh`).
+Seul allfontgennew (generateur de `AllFonts.js`) est encore compile localement depuis `core-master/`.
 
 ## Demarrage
 
 Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete.
 
 Ordre des etapes:
-1. Cloner/deposer `core-master/` et `sdkjs-master/` a la racine
-2. `zsh x2t/build/scripts/sync_sources.sh`
-3. `zsh x2t/build/scripts/sync_sdkjs.sh`
-4. Compiler allfontsgen: `zsh allfontgennew/build/scripts/build_macos.sh`
-5. Generer les polices: `zsh allfontgennew/build/scripts/generate_macos.sh`
-6. Assembler le runtime: `zsh x2t/build/scripts/prepare_runtime_macos.sh`
-7. Tester: `/chemin/vers/x2t "$(pwd)/x2t/test/config_mac.xml"`
+1. Se procurer une release officielle ONLYOFFICE (dossier `Resources/` avec `converter/` + `editors/`)
+2. `zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources`
+3. Deposer `core-master/` a la racine, compiler allfontsgen: `cd allfontgennew && zsh build/scripts/build_macos.sh`
+4. Generer les polices: `zsh build/scripts/generate_macos.sh`
+5. `cp allfontgennew/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
+6. Tester: `x2t/bin/x2t "$(pwd)/x2t/test/config_mac.xml"`
 
 ## Documentation
 

@@ -5,86 +5,77 @@
 Apres un `git clone`, le bundle contient deja:
 
 - `x2t/dictionaries/` — fr_FR, en_US, en_GB
-- `x2t/build/` — scripts de build et de sync
+- `x2t/build/` — scripts de sync
 - `x2t/test/` — configs de test
 
 Ce qui manque et doit etre genere:
 
-- `x2t/src/` — sources C++ (depuis core-master)
-- `x2t/sdkjs/` — runtime JS (depuis sdkjs-master)
-- `allfontgennew/output/` — polices (genere par allfontsgen)
-- `output/` — runtime assemble (genere par prepare_runtime_macos.sh)
+- `x2t/bin/` — binaire x2t + frameworks (depuis une release officielle ONLYOFFICE)
+- `x2t/sdkjs/` — runtime JS minimal (depuis la meme release)
+- `allfontgennew/output/` — polices (genere par allfontsgen, compile depuis core-master)
 
-## Sources externes a deposer a la racine du workspace
+## Source externe a se procurer
 
-```
-workspace/
-├── core-master/        ← git clone https://github.com/ONLYOFFICE/core
-├── sdkjs-master/       ← git clone https://github.com/ONLYOFFICE/sdkjs
-```
+Une **release officielle ONLYOFFICE** contenant un dossier `Resources/` avec:
+- `Resources/converter/` — binaire `x2t` + `*.framework`
+- `Resources/editors/sdkjs/` — sources JS du moteur de rendu
+- `Resources/editors/web-apps/vendor/` — dependances JS (xregexp, etc.)
 
-Ces dossiers sont gitignores. Ils servent uniquement a alimenter les scripts de sync.
-Ils peuvent etre supprimes apres synchro si l'espace disque est contraint.
+Sur macOS, ce dossier se trouve dans `DesktopEditors.app/Contents/Resources` si
+ONLYOFFICE Desktop Editors est installe, ou dans l'archive de release correspondante.
 
 ## Ordre de mise en place
 
-### 1. Synchroniser les sources C++
+### 1. Synchroniser x2t depuis la release
 
 ```sh
-zsh x2t/build/scripts/sync_sources.sh --dry-run   # verifier
-zsh x2t/build/scripts/sync_sources.sh
+zsh x2t/build/scripts/sync_from_release.sh --dry-run /chemin/vers/Resources   # verifier
+zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources
 ```
 
-Produit: `x2t/src/` (~200 Mo avec liens symboliques vers core-master)
+Produit:
+- `x2t/bin/` (~112 Mo — binaire, frameworks, DoctRenderer.config)
+- `x2t/sdkjs/` (~42 Mo — JS minimal necessaire a la conversion)
 
-### 2. Synchroniser le runtime JS
-
-```sh
-zsh x2t/build/scripts/sync_sdkjs.sh --dry-run     # verifier
-zsh x2t/build/scripts/sync_sdkjs.sh
-```
-
-Produit: `x2t/sdkjs/` (~100 Mo, fichiers navigateur exclus)
-
-### 3. Generer les polices (depuis allfontgennew)
+### 2. Compiler allfontsgen et generer les polices
 
 ```sh
 cd allfontgennew
-zsh build/scripts/build_macos.sh      # compile allfontsgen (necessite clang)
-zsh build/scripts/generate_macos.sh   # genere AllFonts.js
+zsh build/scripts/build_macos.sh      # compile allfontsgen depuis core-master (necessite clang)
+zsh build/scripts/generate_macos.sh   # genere AllFonts.js depuis les polices systeme
 ```
 
 Produit: `allfontgennew/output/macos-arm64/fonts/AllFonts.js`
 
-### 4. Assembler le runtime
+Voir [allfontgennew/README.md](../../allfontgennew/README.md) pour le detail de ce bundle
+(il compile toujours depuis `core-master/`, contrairement a x2t).
+
+### 3. Copier AllFonts.js dans x2t/sdkjs
 
 ```sh
-zsh x2t/build/scripts/prepare_runtime_macos.sh
+cp allfontgennew/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js
 ```
 
-Produit: `output/macos-arm64/runtime/` avec sdkjs, dictionaries, cmap.bin, fonts
+`sync_from_release.sh` preserve ce fichier lors des synchros suivantes s'il est deja present.
 
-### 5. Compiler x2t (optionnel — necessite Qt/qmake)
-
-```sh
-zsh x2t/build/scripts/build_macos.sh --dry-run
-zsh x2t/build/scripts/build_macos.sh
-```
-
-Produit: `output/macos-arm64/bin/x2t`
-
-Si tu utilises un binaire x2t pre-compile, saute cette etape.
-
-### 6. Tester
+### 4. Tester
 
 ```sh
-/chemin/vers/x2t "$(pwd)/x2t/test/config_mac.xml"
+x2t/bin/x2t "$(pwd)/x2t/test/config_mac.xml"
 ```
 
 Produit: `x2t/test/*.pdf`
 
 ## Prerequis systeme (macOS arm64)
 
-- Xcode Command Line Tools (`xcode-select --install`)
+- Xcode Command Line Tools (`xcode-select --install`) — pour compiler allfontsgen
 - `clang`, `clang++`, `zsh` (inclus dans CLT)
-- Qt5 ou Qt6 avec `qmake` (pour compiler x2t seulement)
+- Une release officielle ONLYOFFICE (pour x2t) — aucune compilation Qt necessaire
+
+## Alternative : compiler x2t depuis les sources (legacy)
+
+Si tu veux recompiler x2t toi-meme plutot que d'utiliser une release officielle, les scripts
+`sync_sources.sh`, `sync_sdkjs.sh`, `build_macos.sh`, `prepare_runtime_macos.sh` restent
+disponibles et fonctionnent depuis `core-master/` et `sdkjs-master/` deposes a la racine du
+workspace. Ce chemin necessite Qt/qmake et les librairies ICU compilees separement — voir
+les scripts pour le detail. Ce n'est pas le chemin utilise/valide actuellement.

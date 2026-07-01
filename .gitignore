@@ -12,3 +12,4 @@
 /x2t/bin/
 /x2t/output/
 /x2t/test/*.pdf
+/x2t/test/asc*/

@@ -26,3 +26,5 @@
 /convert/convert/bin/
 /convert/convert/obj/
 /convert-windows-x64.zip
+
+/convert/*.pdf

@@ -1,82 +1,83 @@
-# Usage
+﻿# Usage
 
-## Prerequisites
+## Prerequis
 
-For the validated macOS workflow:
-
-- macOS arm64
+### macOS arm64
 - Xcode Command Line Tools
-- `clang`, `clang++`, `xcrun`, `zsh`
-- an `x2t` binary available separately, outside this repository
+- `clang`, `clang++`, `zsh`
+- x2t disponible (via `x2t/build/scripts/sync_from_release.sh`)
 
-This repository does not bundle `x2t`. The intended future layout is:
+### Windows x86_64
+- Visual Studio 2019+ avec workload C++
+- PowerShell 5.1+
+- ONLYOFFICE Desktop Editors installe (pour x2t.exe et ses DLLs)
 
-- repository root: may later host an external `x2t` bundle
-- `allfontgennew/`: contains only AllFonts generation assets
+## Build
 
-## Build the macOS Binary
+### macOS arm64
 
 ```sh
-cd /Users/hlm/Desktop/AbX2T/allfontgennew
+cd allfontgennew
 zsh build/scripts/build_macos.sh
 ```
 
-Expected output:
+Produit : `build/bin/macos-arm64/allfontsgen`
 
-- `build/bin/macos-arm64/allfontsgen`
+### Windows x86_64
 
-## Generate the AllFonts Bundle
+```powershell
+cd allfontgennew
+powershell -ExecutionPolicy Bypass -File build\scripts\build_windows.ps1
+```
+
+Produit : `build\bin\windows-x86_64\allfontsgen.exe`
+
+## Generer AllFonts.js
+
+### macOS arm64
 
 ```sh
-cd /Users/hlm/Desktop/AbX2T/allfontgennew
 zsh build/scripts/generate_macos.sh
 ```
 
-Expected output directory:
+Produit dans `output/macos-arm64/fonts/` :
+- `AllFonts.js`
+- `AllFonts2.js`
+- `font_selection.bin`
+- `fonts.log`
 
-- `output/macos-arm64/fonts`
+### Windows x86_64
 
-Expected files:
-
-- `output/macos-arm64/fonts/AllFonts.js`
-- `output/macos-arm64/fonts/AllFonts2.js`
-- `output/macos-arm64/fonts/font_selection.bin`
-- `output/macos-arm64/fonts/fonts.log`
-
-## Run the Validated x2t Conversion Test
-
-Validated config:
-
-- `test/config_mac.xml`
-
-Validated command:
-
-```sh
-cd /Users/hlm/Downloads/Resources/converter
-./x2t "/Users/hlm/Desktop/AbX2T/allfontgennew/test/config_mac.xml"
+```powershell
+powershell -ExecutionPolicy Bypass -File build\scripts\generate_windows.ps1
 ```
 
-Expected output:
+Produit dans `output\windows-x86_64\fonts\`.
 
-- `test/Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.pdf`
+## Tester la conversion
 
-## If You Need Another Test File
+### macOS arm64
 
-Duplicate `test/config_mac.xml` and change only these fields:
+```sh
+x2t/bin/x2t "$(pwd)/allfontgennew/test/config_mac.xml"
+```
 
-- `m_sFileFrom`
-- `m_sFileTo`
-- `m_sAllFontsPath`
-- `m_sFontDir`
+### Windows x86_64
 
-Keep `m_sAllFontsPath` and `m_sFontDir` aligned with the same generated fonts directory.
+```powershell
+cd x2t\bin\windows-x86_64
+.\x2t.exe "D:\abX2T\allfontgennew\test\config_windows.xml"
+```
 
-## Fast Validation Checklist
+Ou via convert.exe (recommande) :
 
-After any rebuild, validate in this order:
+```powershell
+.\convert.exe "rapport.docx" "rapport.pdf"
+```
 
-1. `zsh build/scripts/build_macos.sh`
-2. `zsh build/scripts/generate_macos.sh`
-3. check that `output/macos-arm64/fonts/AllFonts.js` exists
-4. run `./x2t "/Users/hlm/Desktop/AbX2T/allfontgennew/test/config_mac.xml"`
-5. check that `test/Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.pdf` exists
+## Validation rapide apres rebuild
+
+1. Verifier que le binaire existe (`build/bin/.../allfontsgen`)
+2. Regenerer `AllFonts.js`
+3. Lancer la conversion de test
+4. Verifier que le PDF est produit

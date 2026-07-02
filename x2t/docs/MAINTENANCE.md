@@ -22,16 +22,17 @@ Points de vigilance :
 
 ## Mettre a jour x2t (Windows — nouvelle version ONLYOFFICE)
 
-Reinstaller ONLYOFFICE Desktop Editors puis recopier les fichiers :
+Reinstaller ONLYOFFICE Desktop Editors puis :
 
 ```powershell
-$src = "C:\Program Files\ONLYOFFICE\DesktopEditors\converter"
-$dest = "d:\abX2T\x2t\bin\windows-x86_64"
-Copy-Item "$src\*" $dest -Recurse -Force
-# Restaurer DoctRenderer.config personnalise apres la copie
+powershell -ExecutionPolicy Bypass -File x2t\build\scripts\sync_from_install_windows.ps1 -DryRun   # verifier
+powershell -ExecutionPolicy Bypass -File x2t\build\scripts\sync_from_install_windows.ps1
 ```
 
-Puis recopier sdkjs si besoin et relancer install.ps1 dans convert/out/.
+Points de vigilance :
+- Le script verifie la presence des JS obligatoires avant de synchroniser.
+- `x2t/sdkjs/common/AllFonts.js` est preserve automatiquement si deja present.
+- Repackager ensuite `assets.zip` pour `Abx2t.exe` : `powershell -ExecutionPolicy Bypass -File convert\build\package_windows.ps1` (voir [convert/README.md](../../convert/README.md)).
 
 ## Mettre a jour les dictionnaires
 
@@ -42,12 +43,11 @@ git add x2t/dictionaries/de_DE
 
 ## DoctRenderer.config (Windows)
 
-Ce fichier configure les chemins JS relatifs pour x2t.exe.
-La version dans `x2t/bin/windows-x86_64/` pointe vers `../../sdkjs/`.
-La version dans `convert/out/` pointe vers `sdkjs/` (relatif au meme dossier).
-Ne pas ecraser ce fichier lors d une maj ONLYOFFICE sans le restaurer.
+Ce fichier configure les chemins JS relatifs pour x2t.exe, et differe selon la mise en page :
+- Dans `x2t/bin/windows-x86_64/` (genere par `sync_from_install_windows.ps1`) : pointe vers
+  `..\..\sdkjs\` (bin/windows-x86_64/ est imbrique deux niveaux sous x2t/).
+- Dans `resources/` (assets.zip embarque dans `Abx2t.exe`, genere par `package_windows.ps1`) :
+  pointe vers `./sdkjs/` (x2t.exe et sdkjs/ sont directement cote a cote).
 
-## Chemin legacy : compiler x2t depuis les sources
-
-Les scripts `sync_sources.sh`, `sync_sdkjs.sh`, `build_macos.sh`, `prepare_runtime_macos.sh`
-restent presents mais ne sont pas le chemin valide actuellement. Ils necessitent Qt et ICU.
+Ces deux versions sont regenerees automatiquement par leurs scripts respectifs ; pas de fichier
+a preserver manuellement.

@@ -3,9 +3,6 @@
 /sdkjs-master
 .DS_Store
 
-# Runtime assemblé localement (prepare_runtime_macos.sh)
-/output/
-
 # x2t : contenu généré par les scripts de sync
 /x2t/src/
 /x2t/sdkjs/

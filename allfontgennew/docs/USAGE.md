@@ -12,6 +12,10 @@
 - PowerShell 5.1+
 - ONLYOFFICE Desktop Editors installe (pour x2t.exe et ses DLLs)
 
+### Linux x86_64
+- `gcc`/`g++`, `bash`, `perl` (teste via WSL Ubuntu)
+- Pas de binaire x2t Linux disponible : build + generation uniquement, pas de test de conversion
+
 ## Build
 
 ### macOS arm64
@@ -31,6 +35,15 @@ powershell -ExecutionPolicy Bypass -File build\scripts\build_windows.ps1
 ```
 
 Produit : `build\bin\windows-x86_64\allfontsgen.exe`
+
+### Linux x86_64
+
+```sh
+cd allfontgennew
+bash build/scripts/build_linux.sh
+```
+
+Produit : `build/bin/linux-x86_64/allfontsgen`
 
 ## Generer AllFonts.js
 
@@ -54,6 +67,14 @@ powershell -ExecutionPolicy Bypass -File build\scripts\generate_windows.ps1
 
 Produit dans `output\windows-x86_64\fonts\`.
 
+### Linux x86_64
+
+```sh
+bash build/scripts/generate_linux.sh
+```
+
+Produit dans `output/linux-x86_64/fonts/`.
+
 ## Tester la conversion
 
 ### macOS arm64
@@ -69,11 +90,16 @@ cd x2t\bin\windows-x86_64
 .\x2t.exe "D:\abX2T\allfontgennew\test\config_windows.xml"
 ```
 
-Ou via convert.exe (recommande) :
+Ou via Abx2t.exe (recommande) :
 
 ```powershell
-.\convert.exe "rapport.docx" "rapport.pdf"
+.\Abx2t.exe "rapport.docx" "rapport.pdf"
 ```
+
+### Linux x86_64
+
+Pas de binaire x2t Linux disponible dans ce workspace : la generation des polices est validee
+(voir ci-dessus), mais la conversion de document ne peut pas etre testee sur Linux.
 
 ## Validation rapide apres rebuild
 

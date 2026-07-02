@@ -1,7 +1,6 @@
 .DS_Store
 build/bin/
 build/generated/
-build/legacy/
 build/out/
 output/
 test/*.pdf

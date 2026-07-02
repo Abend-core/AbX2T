@@ -6,34 +6,30 @@ Bundle de conversion de documents ONLYOFFICE pour macOS arm64.
 
 ```
 x2t/
-├── bin/                  Binaire x2t + frameworks + DoctRenderer.config (gitignore, genere par sync_from_release.sh)
+├── bin/                  Binaire x2t + DLLs/frameworks + DoctRenderer.config (gitignore, genere)
+│   └── windows-x86_64/   Sous-dossier Windows (genere par sync_from_install_windows.ps1)
 ├── build/
 │   └── scripts/
-│       ├── sync_from_release.sh     Peuple bin/ et sdkjs/ depuis une release officielle ONLYOFFICE
-│       ├── convert.sh               Point d'entree recommande : conversion + nettoyage garanti du temp dir
-│       ├── sync_sources.sh          Legacy : peuple x2t/src/ depuis core-master (compilation source)
-│       ├── sync_sdkjs.sh            Legacy : peuple x2t/sdkjs/ depuis sdkjs-master (compilation source)
-│       ├── build_macos.sh           Legacy : compile x2t (necessite Qt/qmake)
-│       └── prepare_runtime_macos.sh Legacy : assemble le runtime JS dans output/
+│       ├── sync_from_release.sh          macOS : peuple bin/ et sdkjs/ depuis une release officielle ONLYOFFICE
+│       ├── sync_from_install_windows.ps1 Windows : peuple bin/windows-x86_64/ et sdkjs/ depuis une install ONLYOFFICE Desktop locale
+│       └── convert.sh                    Point d'entree recommande (macOS) : conversion + nettoyage garanti du temp dir
 ├── dictionaries/         fr_FR, en_US, en_GB (commites)
 ├── docs/
 │   ├── SETUP.md          Mise en place sur un nouveau poste
 │   ├── USAGE.md          Convertir un document, lancer les scripts
 │   └── MAINTENANCE.md    Mise a jour depuis upstream
-├── sdkjs/                Runtime JS minimal (gitignore, genere par sync_from_release.sh)
+├── sdkjs/                Runtime JS minimal (gitignore, genere)
 └── test/
     └── config_mac.xml    Config de test pour la conversion docx→pdf
 ```
 
 ## Approche
 
-x2t est assemble depuis une **release officielle ONLYOFFICE pre-compilee** (le binaire x2t et ses
-frameworks ne sont jamais recompiles ici). Seul `x2t/sdkjs/common/AllFonts.js` est genere
-localement, par `allfontgennew` (voir sa doc), a partir des polices installees sur le poste.
-
-Les scripts `sync_sources.sh` / `sync_sdkjs.sh` / `build_macos.sh` / `prepare_runtime_macos.sh`
-restent presents pour une compilation depuis les sources (core-master/sdkjs-master), mais ne
-sont pas le chemin utilise actuellement.
+x2t est assemble depuis une **installation ONLYOFFICE pre-compilee** (le binaire x2t et ses
+DLLs/frameworks ne sont jamais recompiles ici) : une release officielle sur macOS
+(`sync_from_release.sh`), une installation locale ONLYOFFICE Desktop Editors sur Windows
+(`sync_from_install_windows.ps1`). Seul `x2t/sdkjs/common/AllFonts.js` est genere localement,
+par `allfontgennew` (voir sa doc), a partir des polices installees sur le poste.
 
 ## Demarrage rapide
 

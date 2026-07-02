@@ -12,7 +12,7 @@ generated_root="$repo/build/generated"
 mkdir -p "$obj_dir" "$bin_dir"
 rm -f "$obj_dir"/*.o(N) "$binary"
 
-zsh "$repo/build/scripts/prepare_generated_sources.sh" >/dev/null
+bash "$repo/build/scripts/prepare_generated_sources.sh" >/dev/null
 
 common_sources=("${(@f)$(<"$repo/build/config/common_sources.txt")}")
 platform_sources=("${(@f)$(<"$repo/build/config/macos_arm64_sources.txt")}")

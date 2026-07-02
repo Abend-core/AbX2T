@@ -3,7 +3,7 @@
 ## Pourquoi ce bundle existe
 
 Reconstruire un generateur AllFonts.js minimal et autonome depuis les sources ONLYOFFICE,
-sans modifier `src/`, et valide sur macOS arm64 et Windows x86_64.
+sans modifier `src/`, et valide sur macOS arm64, Windows x86_64 et Linux x86_64.
 
 ## Ce qui a ete fait
 
@@ -20,9 +20,9 @@ sans modifier `src/`, et valide sur macOS arm64 et Windows x86_64.
 
 ### 3. Dependances thumbnail desactivees hors src/
 
-`build/scripts/build_windows.ps1` (et `prepare_generated_sources.sh` sur macOS) patche
-`ApplicationFontsWorker.cpp` a la volee dans `build/generated/` pour desactiver les
-includes raster/graphics non necessaires.
+`build/scripts/build_windows.ps1` (et `prepare_generated_sources.sh`, partage par macOS et
+Linux) patche `ApplicationFontsWorker.cpp` a la volee dans `build/generated/` pour desactiver
+les includes raster/graphics non necessaires.
 
 ### 4. Shims par plateforme
 
@@ -36,7 +36,7 @@ includes raster/graphics non necessaires.
 |---|---|---|---|
 | macOS arm64 | OK | OK | OK |
 | Windows x86_64 | OK | OK | OK |
-| Linux x86_64 | Manifests prepares | Non valide | Non valide |
+| Linux x86_64 | OK (teste via WSL Ubuntu) | OK | Non applicable (pas de binaire x2t Linux) |
 
 ## Dependance a core-master
 
@@ -53,9 +53,9 @@ Puis recompiler et retester sur toutes les plateformes.
 
 1. Rafraichir `src/` via `sync_core.sh`
 2. Verifier que le patch `ApplicationFontsWorker.cpp` correspond encore
-3. Recompiler sur macOS (`build_macos.sh`) et Windows (`build_windows.ps1`)
-4. Regenerer AllFonts.js sur les deux plateformes
-5. Relancer les tests de conversion
+3. Recompiler sur macOS (`build_macos.sh`), Windows (`build_windows.ps1`) et Linux (`build_linux.sh`)
+4. Regenerer AllFonts.js sur les trois plateformes
+5. Relancer les tests de conversion (macOS/Windows uniquement, pas de x2t Linux)
 6. Mettre a jour les docs si besoin
 
 ## Fichiers a verifier en premier apres une maj

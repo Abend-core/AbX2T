@@ -3,7 +3,7 @@
 ## Prerequis
 
 Avoir execute les etapes de SETUP.md au moins une fois :
-- `x2t/bin/` peuple (sync_from_release.sh ou copie depuis ONLYOFFICE installe)
+- `x2t/bin/` peuple (`sync_from_release.sh` sur macOS, `sync_from_install_windows.ps1` sur Windows)
 - `x2t/sdkjs/` peuple, avec `x2t/sdkjs/common/AllFonts.js` present
 
 ## Convertir un document
@@ -14,16 +14,17 @@ Avoir execute les etapes de SETUP.md au moins une fois :
 zsh x2t/build/scripts/convert.sh /chemin/absolu/vers/document.docx /chemin/absolu/vers/sortie.pdf
 ```
 
-### Windows (convert.exe)
+### Windows (Abx2t.exe)
 
 ```powershell
-.\convert.exe "rapport.docx" "rapport.pdf"
+.\Abx2t.exe "rapport.docx" "rapport.pdf"
 ```
 
-`convert.exe` est le point d entree recommande sur Windows. Il genere le XML de config
-en coulisse, lance x2t.exe, et nettoie apres lui.
+`Abx2t.exe` est le point d'entree recommande sur Windows (voir [convert/README.md](../../convert/README.md)).
+Il s'auto-installe au premier lancement, genere le XML de config en coulisse, lance x2t.exe, et
+nettoie apres lui.
 
-## Formats supportes par convert.exe
+## Formats supportes par Abx2t.exe
 
 - Entree : `.docx`, `.doc`
 - Sortie : `.pdf`
@@ -66,14 +67,17 @@ cp output/macos-arm64/fonts/AllFonts.js ../x2t/sdkjs/common/AllFonts.js
 
 ### Windows
 
+`Abx2t.exe` regenere automatiquement `allfonts\AllFonts.js` s'il est absent. Pour forcer une
+regeneration (nouvelle police installee), supprimer le fichier et relancer une conversion :
+
 ```powershell
-# Dans le dossier convert/out/ :
-.\install.ps1
+Remove-Item allfonts\AllFonts.js
+.\Abx2t.exe "rapport.docx" "rapport.pdf"
 ```
 
 ## Pourquoi m_sTempDir est recommande (macOS/Linux)
 
 Sans `m_sTempDir` explicite, x2t cree un dossier temporaire `ascXXXXXX` a cote du
 fichier de sortie et peut ne pas le supprimer en cas d erreur. `convert.sh` gere
-ce nettoyage via `mktemp -d` + `trap EXIT`. Sur Windows, `convert.exe` passe par
+ce nettoyage via `mktemp -d` + `trap EXIT`. Sur Windows, `Abx2t.exe` passe par
 le dossier temp systeme (%TEMP%) et nettoie apres chaque appel.

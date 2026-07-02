@@ -8,8 +8,8 @@ This bundle is the current reference. `oldmodifysources` is no longer needed.
 
 - `src/` contains copied upstream sources only.
 - Local build shims, manifests, generated overlays, and scripts live outside `src/`.
-- The first validated target is macOS arm64.
-- Planned targets are macOS arm64, Linux x86_64, and Windows x86_64.
+- Validated targets: macOS arm64, Windows x86_64, Linux x86_64 (build + font generation only,
+  no x2t binary available on Linux for a conversion test).
 
 ## Quick Start
 
@@ -32,6 +32,14 @@ Run the validated x2t conversion test:
 ```sh
 cd /Users/hlm/Downloads/Resources/converter
 ./x2t "/Users/hlm/Desktop/AbX2T/allfontgennew/test/config_mac.xml"
+```
+
+On Linux (tested via WSL Ubuntu):
+
+```sh
+cd allfontgennew
+bash build/scripts/build_linux.sh
+bash build/scripts/generate_linux.sh
 ```
 
 ## Documentation Index

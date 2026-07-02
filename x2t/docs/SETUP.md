@@ -72,10 +72,7 @@ Produit: `x2t/test/*.pdf`
 - `clang`, `clang++`, `zsh` (inclus dans CLT)
 - Une release officielle ONLYOFFICE (pour x2t) — aucune compilation Qt necessaire
 
-## Alternative : compiler x2t depuis les sources (legacy)
+## Windows
 
-Si tu veux recompiler x2t toi-meme plutot que d'utiliser une release officielle, les scripts
-`sync_sources.sh`, `sync_sdkjs.sh`, `build_macos.sh`, `prepare_runtime_macos.sh` restent
-disponibles et fonctionnent depuis `core-master/` et `sdkjs-master/` deposes a la racine du
-workspace. Ce chemin necessite Qt/qmake et les librairies ICU compilees separement — voir
-les scripts pour le detail. Ce n'est pas le chemin utilise/valide actuellement.
+Voir [MAINTENANCE.md](MAINTENANCE.md) : `sync_from_install_windows.ps1` peuple `x2t/bin/windows-x86_64/`
+et `x2t/sdkjs/` depuis une installation locale ONLYOFFICE Desktop Editors.

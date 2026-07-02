@@ -1,16 +1,18 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 set -euo pipefail
 
-repo=$(cd -- "${0:A:h}/../.." && pwd)
+repo=$(cd -- "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 generated_root="$repo/build/generated"
 generated_file="$generated_root/src/DesktopEditor/fontengine/ApplicationFontsWorker.cpp"
 
-mkdir -p "${generated_file:h}"
+mkdir -p "$(dirname "$generated_file")"
 rm -f "$generated_file" "$generated_file.orig" "$generated_file.rej"
 cp "$repo/src/DesktopEditor/fontengine/ApplicationFontsWorker.cpp" "$generated_file"
 
 perl -0pi -e '
+s/\r\n/\n/g;
+
 my $old_includes = q~#include "../graphics/pro/Fonts.h"
 #include "../raster/BgraFrame.h"
 #include "../graphics/pro/Graphics.h"~;

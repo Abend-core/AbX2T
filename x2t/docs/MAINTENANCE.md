@@ -35,13 +35,14 @@ Points de vigilance :
 - `x2t/sdkjs/common/AllFonts.js` est preserve automatiquement si deja present.
 - Repackager ensuite `assets.zip` pour `Abx2t.exe` : `powershell -ExecutionPolicy Bypass -File convert\build\package_windows.ps1` (voir [convert/README.md](../../convert/README.md)).
 
-## DoctRenderer.config (Windows)
+## DoctRenderer.config
 
-Ce fichier configure les chemins JS relatifs pour x2t.exe, et differe selon la mise en page :
-- Dans `x2t/bin/windows-x86_64/` (genere par `sync_from_install_windows.ps1`) : pointe vers
-  `..\..\sdkjs\` (bin/windows-x86_64/ est imbrique deux niveaux sous x2t/).
+Ce fichier configure les chemins JS relatifs pour x2t / x2t.exe, et differe selon la mise en page :
+- Dans `x2t/bin/macos-arm64/` (genere par `sync_from_release.sh`) et `x2t/bin/windows-x86_64/`
+  (genere par `sync_from_install_windows.ps1`) : pointe vers `../../sdkjs/` (chaque sous-dossier
+  bin/<os-arch>/ est imbrique deux niveaux sous x2t/).
 - Dans `resources/` (assets.zip embarque dans `Abx2t.exe`, genere par `package_windows.ps1`) :
   pointe vers `./sdkjs/` (x2t.exe et sdkjs/ sont directement cote a cote).
 
-Ces deux versions sont regenerees automatiquement par leurs scripts respectifs ; pas de fichier
+Ces versions sont regenerees automatiquement par leurs scripts respectifs ; pas de fichier
 a preserver manuellement.

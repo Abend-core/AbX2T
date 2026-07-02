@@ -6,11 +6,12 @@ Bundle de conversion de documents ONLYOFFICE pour macOS arm64.
 
 ```
 x2t/
-├── bin/                  Binaire x2t + DLLs/frameworks + DoctRenderer.config (commite)
-│   └── windows-x86_64/   Sous-dossier Windows (peuple par sync_from_install_windows.ps1)
+├── bin/                  Binaires par OS/arch (commite), un sous-dossier scope par plateforme
+│   ├── macos-arm64/      Binaire x2t + frameworks + DoctRenderer.config (peuple par sync_from_release.sh)
+│   └── windows-x86_64/   Binaire x2t.exe + DLLs + DoctRenderer.config (peuple par sync_from_install_windows.ps1)
 ├── build/
 │   └── scripts/
-│       ├── sync_from_release.sh          macOS : peuple bin/ et sdkjs/ depuis une release officielle ONLYOFFICE
+│       ├── sync_from_release.sh          macOS : peuple bin/macos-arm64/ et sdkjs/ depuis une release officielle ONLYOFFICE
 │       ├── sync_from_install_windows.ps1 Windows : peuple bin/windows-x86_64/ et sdkjs/ depuis une install ONLYOFFICE Desktop locale
 │       └── convert.sh                    Point d'entree recommande (macOS) : conversion + nettoyage garanti du temp dir
 ├── docs/
@@ -43,7 +44,7 @@ En resume:
 4. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
 5. `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
 
-Utiliser `convert.sh` plutot que d'appeler `x2t/bin/x2t` directement : x2t laisse par
+Utiliser `convert.sh` plutot que d'appeler `x2t/bin/macos-arm64/x2t` directement : x2t laisse par
 defaut un dossier temporaire orphelin a cote du fichier de sortie sur macOS/Linux
 (bug de nettoyage upstream, voir [docs/USAGE.md](docs/USAGE.md#pourquoi-convertsh-et-pourquoi-m_stempdir-est-obligatoire)),
 et `convert.sh` garantit sa suppression.

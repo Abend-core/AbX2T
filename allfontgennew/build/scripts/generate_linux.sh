@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Runs allfontsgen (built from ONLYOFFICE/core source, AGPLv3). See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 

@@ -1,4 +1,8 @@
 #!/usr/bin/env zsh
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copies an unmodified subset of ONLYOFFICE/core source (Copyright (C) Ascensio System SIA,
+# AGPLv3) into allfontgennew/src/. See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 
@@ -11,11 +15,11 @@ usage() {
   cat <<'EOF'
 Usage: zsh allfontgennew/build/scripts/sync_core.sh [--dry-run] [source_dir]
 
-Copie le sous-ensemble upstream dans allfontgennew/src/.
-Remplace uniquement: Common, DesktopEditor, OdfFile, UnicodeConverter.
+Copies the upstream subset into allfontgennew/src/.
+Only replaces: Common, DesktopEditor, OdfFile, UnicodeConverter.
 
-- source_dir: par defaut core-master/, puis core/, puis corps/ a la racine.
-- --dry-run: affiche ce qui serait fait sans ecrire.
+- source_dir: defaults to core-master/, then core/, then corps/ at the workspace root.
+- --dry-run: shows what would be done without writing anything.
 EOF
 }
 
@@ -27,7 +31,7 @@ while (( $# > 0 )); do
     -n|--dry-run) dry_run=1 ;;
     -h|--help) usage; exit 0 ;;
     *)
-      [[ -z "$source_root" ]] || { echo "Un seul dossier source accepte." >&2; usage >&2; exit 1; }
+      [[ -z "$source_root" ]] || { echo "Only one source directory accepted." >&2; usage >&2; exit 1; }
       source_root="$1"
       ;;
   esac
@@ -41,21 +45,21 @@ if [[ -z "$source_root" ]]; then
 fi
 
 [[ -n "$source_root" && -d "$source_root" ]] || {
-  echo "Dossier core introuvable. Deposer core-master/ a la racine du workspace." >&2; exit 1
+  echo "core directory not found. Place core-master/ at the workspace root." >&2; exit 1
 }
 
 missing=()
 for c in "${components[@]}"; do [[ -d "$source_root/$c" ]] || missing+=("$c"); done
 (( ${#missing[@]} == 0 )) || {
-  echo "Composants manquants dans core: ${missing[*]}" >&2; exit 1
+  echo "Missing components in core: ${missing[*]}" >&2; exit 1
 }
 
-echo "Source  : $source_root"
-echo "Cible   : $dest_root"
-echo "Dossiers: ${components[*]}"
+echo "Source : $source_root"
+echo "Target : $dest_root"
+echo "Dirs   : ${components[*]}"
 
 if (( dry_run )); then
-  for c in "${components[@]}"; do echo "[dry-run] copier $source_root/$c -> $dest_root/$c"; done
+  for c in "${components[@]}"; do echo "[dry-run] copy $source_root/$c -> $dest_root/$c"; done
   exit 0
 fi
 
@@ -70,4 +74,4 @@ for c in "${components[@]}"; do
   echo "OK: $c"
 done
 
-echo "Synchronisation terminee."
+echo "Sync complete."

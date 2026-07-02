@@ -1,4 +1,8 @@
 #!/usr/bin/env zsh
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Invokes ONLYOFFICE x2t (Copyright (C) Ascensio System SIA, AGPLv3) as an unmodified
+# subprocess. See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 
@@ -9,23 +13,24 @@ workspace_root=$(cd -- "$bundle_root/.." && pwd)
 
 usage() {
   cat <<'EOF'
-Usage: zsh x2t/build/scripts/convert.sh <fichier_source> <fichier_sortie> [fontdir]
+Usage: zsh x2t/build/scripts/convert.sh <source_file> <output_file> [fontdir]
 
-Convertit un document via x2t/bin/x2t en gerant nous-memes le dossier temporaire
-de travail (mktemp + nettoyage garanti par trap), plutot que de laisser x2t
-en creer un a cote du fichier de sortie.
+Converts a document via x2t/bin/x2t, managing the working temp directory
+ourselves (mktemp + guaranteed cleanup via trap) instead of letting x2t
+create one next to the output file.
 
-Sur macOS/Linux, x2t (DesktopEditor/common/Directory.cpp) essaie de nettoyer son
-dossier temporaire automatique via rmdir(), mais sa fonction de listage recursif
-ignore les sous-dossiers caches (noms commencant par '.'). Si un tel sous-dossier
-survit, rmdir() echoue silencieusement (le code retour n'est pas verifie) et un
-dossier "ascXXXXXX" reste orphelin a cote du fichier converti. Impossible a
-corriger sans recompiler x2t (ici on utilise un binaire pre-compile officiel).
+On macOS/Linux, x2t (DesktopEditor/common/Directory.cpp) tries to clean up its
+own temp directory via rmdir(), but its recursive listing function ignores
+hidden subdirectories (names starting with '.'). If such a subdirectory
+survives, rmdir() fails silently (the return code isn't checked) and an
+orphaned "ascXXXXXX" directory is left behind next to the converted file.
+This can't be fixed without recompiling x2t (here we use an official
+pre-compiled binary).
 
-En fournissant un m_sTempDir explicite, x2t delegue le nettoyage a l'appelant :
-ce script garantit la suppression du dossier temporaire, succes ou echec.
+By providing an explicit m_sTempDir, x2t delegates cleanup to the caller:
+this script guarantees the temp directory is removed, on success or failure.
 
-fontdir: dossier des polices (defaut: allfontgennew/output/macos-arm64/fonts)
+fontdir: fonts directory (default: allfontgennew/output/macos-arm64/fonts)
 EOF
 }
 
@@ -42,10 +47,10 @@ font_dir=${3:-"$workspace_root/allfontgennew/output/macos-arm64/fonts"}
 x2t_bin="$bundle_root/bin/x2t"
 all_fonts="$bundle_root/sdkjs/common/AllFonts.js"
 
-[[ -x "$x2t_bin" ]] || { echo "Binaire introuvable: $x2t_bin (lancer sync_from_release.sh)" >&2; exit 1; }
-[[ -f "$all_fonts" ]] || { echo "AllFonts.js introuvable: $all_fonts" >&2; exit 1; }
-[[ -d "$font_dir" ]] || { echo "Dossier de polices introuvable: $font_dir" >&2; exit 1; }
-[[ -f "$file_from" ]] || { echo "Fichier source introuvable: $file_from" >&2; exit 1; }
+[[ -x "$x2t_bin" ]] || { echo "Binary not found: $x2t_bin (run sync_from_release.sh)" >&2; exit 1; }
+[[ -f "$all_fonts" ]] || { echo "AllFonts.js not found: $all_fonts" >&2; exit 1; }
+[[ -d "$font_dir" ]] || { echo "Fonts directory not found: $font_dir" >&2; exit 1; }
+[[ -f "$file_from" ]] || { echo "Source file not found: $file_from" >&2; exit 1; }
 
 work_dir=$(/usr/bin/mktemp -d "${TMPDIR:-/tmp}/x2t-convert.XXXXXX")
 trap 'rm -rf "$work_dir"' EXIT

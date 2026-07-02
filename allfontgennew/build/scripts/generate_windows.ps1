@@ -1,3 +1,6 @@
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Runs allfontsgen (built from ONLYOFFICE/core source, AGPLv3). See /THIRD-PARTY-NOTICES.md.
 #Requires -Version 5.1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -7,7 +10,7 @@ $binary     = Join-Path $repo 'build\bin\windows-x86_64\allfontsgen.exe'
 $output_dir = if ($args[0]) { $args[0] } else { Join-Path $repo 'output\windows-x86_64\fonts' }
 
 if (-not (Test-Path $binary)) {
-    Write-Host "Binary not found — building first..."
+    Write-Host "Binary not found - building first..."
     & powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'build_windows.ps1')
 }
 

@@ -9,6 +9,12 @@
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>false</PublishTrimmed>
+    <Product>AbX2T</Product>
+    <Authors>Hugo Lagouardat</Authors>
+    <Company>Abend-core</Company>
+    <Copyright>Copyright (C) 2026 Hugo Lagouardat (Abend-core). Licensed under GNU AGPL-3.0-or-later. Bundles ONLYOFFICE components (C) Ascensio System SIA (AGPLv3).</Copyright>
+    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Abend-core/AbX2T</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,9 @@
 #!/usr/bin/env zsh
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Compiles allfontsgen from a vendored subset of ONLYOFFICE/core source (Copyright (C)
+# Ascensio System SIA, AGPLv3, see allfontgennew/src/). Calls prepare_generated_sources.sh,
+# which applies a build-time patch to one source file. See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 

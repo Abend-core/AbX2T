@@ -1,3 +1,8 @@
+// AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// This program bundles ONLYOFFICE components (x2t, sdkjs), Copyright (C) Ascensio System SIA,
+// also under AGPLv3. See --license, LICENSE, and THIRD-PARTY-NOTICES.md.
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -7,9 +12,39 @@ using System.Xml;
 
 class Program
 {
-    // Formats lus par ONLYOFFICE dans ce bundle (word/cell/slide/visio/pdf + DLLs x2t/bin, voir
-    // convert/docs/SUPPORTED_FORMATS.md). Formats ecrits : sous-ensemble reellement inscriptible
-    // (les formats legacy binaires et e-book/scan sont lus mais jamais reecrits par ONLYOFFICE).
+    const string LicenseNotice = @"AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core project)
+https://github.com/Abend-core/AbX2T
+
+This program is free software: you can redistribute it and/or modify it under the terms of
+the GNU Affero General Public License, version 3, as published by the Free Software
+Foundation. This program is distributed WITHOUT ANY WARRANTY. Full license text:
+https://www.gnu.org/licenses/agpl-3.0.html (LICENSE file in this repository).
+
+Bundled third-party components:
+  ONLYOFFICE x2t / sdkjs (conversion engine and runtime), version 9.4.0.129
+  Copyright (C) Ascensio System SIA - https://www.onlyoffice.com
+  License: GNU AGPLv3. Corresponding source (exact version):
+    https://github.com/ONLYOFFICE/core/releases/tag/v9.4.0.129
+    https://github.com/ONLYOFFICE/sdkjs/releases/tag/v9.4.0.129
+  Unmodified components, simply packaged and invoked as a subprocess by AbX2T.
+  These binaries embed further third-party libraries (ICU, FreeType, HarfBuzz, V8, ...);
+  see 3DPARTY.md in the ONLYOFFICE/core repository.
+
+  allfontsgen (font indexer built from ONLYOFFICE/core sources, AGPLv3).
+  Portions of this software are copyright (C) The FreeType Project
+  (https://www.freetype.org). All rights reserved.
+
+  Spell-check dictionaries: community hunspell dictionaries under their own licenses;
+  the original license and README files of each dictionary are preserved verbatim in
+  resources\dictionaries\ next to it.
+
+AbX2T is not affiliated with, endorsed by, or sponsored by Ascensio System SIA / ONLYOFFICE.
+Full details: THIRD-PARTY-NOTICES.md and LICENSE, extracted to resources\ on first run and
+available in the source repository.";
+
+    // Formats read by ONLYOFFICE in this bundle (word/cell/slide/visio/pdf + x2t/bin DLLs, see
+    // convert/docs/SUPPORTED_FORMATS.md). Written formats: subset actually writable
+    // (legacy binary and e-book/scan formats are read but never written back by ONLYOFFICE).
     static readonly string[] InputExtensions = {
         "doc","docx","docm","dotx","dotm","odt","ott","rtf","txt","html","mht","epub","fb2","mobi","hwp","hwpx","md",
         "ppt","pptx","pptm","ppsx","ppsm","potx","potm","odp","otp",
@@ -27,11 +62,18 @@ class Program
 
     static int Main(string[] args)
     {
+        if (args.Length >= 1 && (args[0] == "--license" || args[0] == "--licence" || args[0] == "--about"))
+        {
+            Console.WriteLine(LicenseNotice);
+            return 0;
+        }
+
         if (args.Length < 2)
         {
-            Console.Error.WriteLine("Usage: Abx2t.exe <source> <sortie>");
-            Console.Error.WriteLine($"  Entree acceptee : .{string.Join(", .", InputExtensions)}");
-            Console.Error.WriteLine($"  Sortie acceptee : .{string.Join(", .", OutputExtensions)}");
+            Console.Error.WriteLine("Usage: Abx2t.exe <source> <output>");
+            Console.Error.WriteLine($"  Accepted input  : .{string.Join(", .", InputExtensions)}");
+            Console.Error.WriteLine($"  Accepted output : .{string.Join(", .", OutputExtensions)}");
+            Console.Error.WriteLine("  Abx2t.exe --license : AGPLv3 license and ONLYOFFICE attribution");
             return 1;
         }
 
@@ -40,48 +82,55 @@ class Program
 
         if (!File.Exists(input))
         {
-            Console.Error.WriteLine($"Erreur: fichier source introuvable: {input}");
+            Console.Error.WriteLine($"Error: source file not found: {input}");
             return 1;
         }
 
         string inputExt = Path.GetExtension(input).ToLowerInvariant().TrimStart('.');
         if (Array.IndexOf(InputExtensions, inputExt) < 0)
         {
-            Console.Error.WriteLine($"Erreur: format non supporte (.{inputExt}). " +
-                                     $"Formats acceptes: .{string.Join(", .", InputExtensions)}");
+            Console.Error.WriteLine($"Error: unsupported input format (.{inputExt}). " +
+                                     $"Accepted formats: .{string.Join(", .", InputExtensions)}");
             return 1;
         }
 
         string outputExt = Path.GetExtension(output).ToLowerInvariant().TrimStart('.');
         if (Array.IndexOf(OutputExtensions, outputExt) < 0)
         {
-            Console.Error.WriteLine($"Erreur: sortie non supportee (.{outputExt}). " +
-                                     $"Formats acceptes: .{string.Join(", .", OutputExtensions)}");
+            Console.Error.WriteLine($"Error: unsupported output format (.{outputExt}). " +
+                                     $"Accepted formats: .{string.Join(", .", OutputExtensions)}");
             return 1;
         }
 
-        string exeDir       = AppContext.BaseDirectory;
-        string resourcesDir = Path.Combine(exeDir, "resources");
-        string allfontsDir  = Path.Combine(exeDir, "allfonts");
-        string x2tPath      = Path.Combine(resourcesDir, "x2t.exe");
-        string allFonts     = Path.Combine(allfontsDir, "AllFonts.js");
+        string exeDir         = AppContext.BaseDirectory;
+        string resourcesDir   = Path.Combine(exeDir, "resources");
+        string allfontsDir    = Path.Combine(exeDir, "allfonts");
+        string customFontsDir = Path.Combine(exeDir, "custom-fonts");
+        string x2tPath        = Path.Combine(resourcesDir, "x2t.exe");
+        string allFonts       = Path.Combine(allfontsDir, "AllFonts.js");
 
-        // Extraction des assets si absents (x2t.exe, DLLs, allfontsgen.exe, sdkjs -> resources/)
+        // Extract assets if missing (x2t.exe, DLLs, allfontsgen.exe, sdkjs -> resources/)
         if (!File.Exists(x2tPath))
         {
-            Console.WriteLine("Premiere utilisation : extraction des composants...");
+            Console.WriteLine("First run: extracting components...");
             int r = ExtractAssets(resourcesDir);
             if (r != 0) return r;
             Console.WriteLine("Extraction OK.");
         }
 
-        // Generation AllFonts.js si absent (specifique a la machine -> allfonts/)
-        if (!File.Exists(allFonts))
+        // custom-fonts/ : extra fonts dropped in manually (no Windows install required),
+        // indexed by allfontsgen alongside system fonts. Always created so it stays
+        // discoverable, even before any font is added.
+        Directory.CreateDirectory(customFontsDir);
+
+        // Generate AllFonts.js if missing, or if custom-fonts/ has files newer than it
+        // (a new font was added since the last generation).
+        if (!File.Exists(allFonts) || HasNewerFiles(customFontsDir, File.GetLastWriteTimeUtc(allFonts)))
         {
-            Console.WriteLine("Generation des polices systeme...");
-            int r = GenerateFonts(resourcesDir, allfontsDir, allFonts);
+            Console.WriteLine("Generating system fonts index...");
+            int r = GenerateFonts(resourcesDir, allfontsDir, allFonts, customFontsDir);
             if (r != 0) return r;
-            Console.WriteLine("Polices OK.");
+            Console.WriteLine("Fonts OK.");
         }
 
         string sdkjsDir = Path.Combine(resourcesDir, "sdkjs");
@@ -89,10 +138,10 @@ class Program
         if (!string.IsNullOrEmpty(outputDir))
             Directory.CreateDirectory(outputDir);
 
-        // Dossier de travail local (TEMP systeme) : x2t lit/ecrit uniquement en local,
-        // meme si la source ou la destination reelle est sur un partage reseau (\\serveur\partage
-        // ou un lecteur mappe). Ca evite les problemes de verrous/latence/ecriture partielle
-        // sur le reseau, et garantit qu'un plantage ne laisse rien sur le partage.
+        // Local work directory (system TEMP): x2t only reads/writes locally, even if the
+        // real source or destination is on a network share (\\server\share or a mapped
+        // drive). This avoids lock/latency/partial-write issues over the network, and
+        // guarantees a crash leaves nothing behind on the share.
         string workDir     = Path.Combine(Path.GetTempPath(), $"x2t_convert_{Guid.NewGuid():N}");
         string tempDir     = Path.Combine(workDir, "temp");
         string localInput  = Path.Combine(workDir, "input." + inputExt);
@@ -107,7 +156,7 @@ class Program
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Erreur: lecture du fichier source impossible ({input}): {ex.Message}");
+                Console.Error.WriteLine($"Error: could not read source file ({input}): {ex.Message}");
                 return 1;
             }
 
@@ -130,7 +179,7 @@ class Program
 
             if (proc.ExitCode != 0)
             {
-                Console.Error.WriteLine($"Erreur x2t (code {proc.ExitCode})");
+                Console.Error.WriteLine($"x2t error (code {proc.ExitCode})");
                 if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
                 if (!string.IsNullOrWhiteSpace(stdout)) Console.Error.WriteLine(stdout);
                 return proc.ExitCode;
@@ -138,7 +187,7 @@ class Program
 
             if (!File.Exists(localOutput))
             {
-                Console.Error.WriteLine("Erreur: conversion terminee mais fichier de sortie absent");
+                Console.Error.WriteLine("Error: conversion finished but the output file is missing");
                 return 1;
             }
 
@@ -148,7 +197,7 @@ class Program
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Erreur: ecriture du fichier de sortie impossible ({output}): {ex.Message}");
+                Console.Error.WriteLine($"Error: could not write output file ({output}): {ex.Message}");
                 return 1;
             }
 
@@ -170,7 +219,7 @@ class Program
                 .GetManifestResourceStream("convert.assets.zip");
             if (zip == null)
             {
-                Console.Error.WriteLine("Erreur: assets.zip introuvable dans l'executable");
+                Console.Error.WriteLine("Error: assets.zip not found inside the executable");
                 return 1;
             }
             using var archive = new ZipArchive(zip, ZipArchiveMode.Read);
@@ -179,17 +228,17 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Erreur extraction: {ex.Message}");
+            Console.Error.WriteLine($"Extraction error: {ex.Message}");
             return 1;
         }
     }
 
-    static int GenerateFonts(string resourcesDir, string allfontsDir, string allFontsPath)
+    static int GenerateFonts(string resourcesDir, string allfontsDir, string allFontsPath, string customFontsDir)
     {
         string allfontsgen = Path.Combine(resourcesDir, "allfontsgen.exe");
         if (!File.Exists(allfontsgen))
         {
-            Console.Error.WriteLine($"Erreur: allfontsgen.exe introuvable dans {resourcesDir}");
+            Console.Error.WriteLine($"Error: allfontsgen.exe not found in {resourcesDir}");
             return 1;
         }
 
@@ -203,6 +252,7 @@ class Program
             {
                 FileName         = allfontsgen,
                 Arguments        = $"--use-system=true --use-system-user-fonts=true " +
+                                   $"\"--input={customFontsDir}\" " +
                                    $"\"--selection={tmp}\\font_selection.bin\" " +
                                    $"\"--allfonts={tmp}\\AllFonts.js\" " +
                                    $"\"--allfonts-web={tmp}\\AllFonts2.js\" " +
@@ -214,7 +264,7 @@ class Program
             proc.WaitForExit();
             if (proc.ExitCode != 0)
             {
-                Console.Error.WriteLine($"Erreur allfontsgen (code {proc.ExitCode})");
+                Console.Error.WriteLine($"allfontsgen error (code {proc.ExitCode})");
                 return 1;
             }
 
@@ -229,13 +279,22 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Erreur generation polices: {ex.Message}");
+            Console.Error.WriteLine($"Font generation error: {ex.Message}");
             return 1;
         }
         finally
         {
             Directory.Delete(tmp, recursive: true);
         }
+    }
+
+    static bool HasNewerFiles(string dir, DateTime sinceUtc)
+    {
+        foreach (string f in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+        {
+            if (File.GetLastWriteTimeUtc(f) > sinceUtc) return true;
+        }
+        return false;
     }
 
     static void WriteConfig(string config, string input, string output,

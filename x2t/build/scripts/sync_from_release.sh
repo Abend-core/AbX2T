@@ -1,4 +1,8 @@
 #!/usr/bin/env zsh
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copies unmodified binaries/JS from an official ONLYOFFICE release (Copyright (C)
+# Ascensio System SIA, AGPLv3) into this bundle. See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 
@@ -10,13 +14,13 @@ usage() {
   cat <<'EOF'
 Usage: zsh x2t/build/scripts/sync_from_release.sh [--dry-run] <release_dir>
 
-Synchronise le bundle x2t depuis une release officielle ONLYOFFICE.
-Peuple x2t/bin/ (binaire + frameworks) et x2t/sdkjs/ (JS minimal pour la conversion).
+Synchronizes the x2t bundle from an official ONLYOFFICE release.
+Populates x2t/bin/ (binary + frameworks) and x2t/sdkjs/ (minimal JS needed for conversion).
 
-release_dir: dossier Resources de la release (ex: /Applications/OnlyOffice.app/Contents/Resources)
-             Doit contenir converter/ et editors/.
+release_dir: the release's Resources directory (e.g. /Applications/OnlyOffice.app/Contents/Resources)
+             Must contain converter/ and editors/.
 
---dry-run: affiche ce qui serait fait sans ecrire.
+--dry-run: shows what would be done without writing anything.
 EOF
 }
 
@@ -28,17 +32,17 @@ while (( $# > 0 )); do
     -n|--dry-run) dry_run=1 ;;
     -h|--help) usage; exit 0 ;;
     *)
-      [[ -z "$release_dir" ]] || { echo "Un seul dossier release accepte." >&2; usage >&2; exit 1; }
+      [[ -z "$release_dir" ]] || { echo "Only one release directory accepted." >&2; usage >&2; exit 1; }
       release_dir="$1"
       ;;
   esac
   shift
 done
 
-[[ -n "$release_dir" ]] || { echo "Argument manquant: release_dir" >&2; usage >&2; exit 1; }
-[[ -d "$release_dir" ]] || { echo "Dossier introuvable: $release_dir" >&2; exit 1; }
+[[ -n "$release_dir" ]] || { echo "Missing argument: release_dir" >&2; usage >&2; exit 1; }
+[[ -d "$release_dir" ]] || { echo "Directory not found: $release_dir" >&2; exit 1; }
 
-# Localiser converter/ et editors/
+# Locate converter/ and editors/
 if [[ -f "$release_dir/converter/x2t" ]]; then
   converter_dir="$release_dir/converter"
   editors_dir="$release_dir/editors"
@@ -46,17 +50,17 @@ elif [[ -f "$release_dir/x2t" ]]; then
   converter_dir="$release_dir"
   editors_dir="$release_dir/../editors"
 else
-  echo "Binaire x2t introuvable dans $release_dir" >&2; exit 1
+  echo "x2t binary not found in $release_dir" >&2; exit 1
 fi
 
 editors_dir=$(cd -- "$editors_dir" 2>/dev/null && pwd || echo "")
-[[ -n "$editors_dir" && -d "$editors_dir" ]] || { echo "Dossier editors/ introuvable." >&2; exit 1; }
+[[ -n "$editors_dir" && -d "$editors_dir" ]] || { echo "editors/ directory not found." >&2; exit 1; }
 
 sdkjs_src="$editors_dir/sdkjs"
 vendor_src="$editors_dir/web-apps/vendor"
 
-[[ -d "$sdkjs_src" ]]  || { echo "editors/sdkjs introuvable: $sdkjs_src" >&2; exit 1; }
-[[ -d "$vendor_src" ]] || { echo "editors/web-apps/vendor introuvable: $vendor_src" >&2; exit 1; }
+[[ -d "$sdkjs_src" ]]  || { echo "editors/sdkjs not found: $sdkjs_src" >&2; exit 1; }
+[[ -d "$vendor_src" ]] || { echo "editors/web-apps/vendor not found: $vendor_src" >&2; exit 1; }
 
 bin_dest="$bundle_root/bin"
 sdkjs_dest="$bundle_root/sdkjs"
@@ -66,7 +70,7 @@ echo "Release editors   : $editors_dir"
 echo "Destination bin   : $bin_dest"
 echo "Destination sdkjs : $sdkjs_dest"
 
-# Fichiers JS necessaires pour la conversion (sdk-all-min.js + sdk-all.js obligatoires ensemble)
+# JS files needed for conversion (sdk-all-min.js + sdk-all.js required together)
 sdkjs_files=(
   "common/Native/native.js"
   "common/Native/jquery_native.js"
@@ -88,7 +92,7 @@ for f in "${sdkjs_files[@]}"; do [[ -f "$sdkjs_src/$f" ]] || missing+=("$f"); do
 [[ -f "$vendor_src/xregexp/xregexp-all-min.js" ]] || missing+=("web-apps/vendor/xregexp/xregexp-all-min.js")
 
 (( ${#missing[@]} == 0 )) || {
-  echo "Fichiers manquants dans la release:" >&2
+  echo "Missing files in the release:" >&2
   for f in "${missing[@]}"; do echo "  $f" >&2; done
   exit 1
 }
@@ -96,13 +100,13 @@ for f in "${sdkjs_files[@]}"; do [[ -f "$sdkjs_src/$f" ]] || missing+=("$f"); do
 if (( dry_run )); then
   echo ""
   echo "[dry-run] --- bin/ ---"
-  echo "[dry-run] copier x2t"
-  for fw in "$converter_dir"/*.framework; do [[ -d "$fw" ]] && echo "[dry-run] copier ${fw:t}"; done
-  echo "[dry-run] ecrire DoctRenderer.config"
+  echo "[dry-run] copy x2t"
+  for fw in "$converter_dir"/*.framework; do [[ -d "$fw" ]] && echo "[dry-run] copy ${fw:t}"; done
+  echo "[dry-run] write DoctRenderer.config"
   echo ""
   echo "[dry-run] --- sdkjs/ ---"
-  for f in "${sdkjs_files[@]}"; do echo "[dry-run] copier $f"; done
-  echo "[dry-run] copier vendor/xregexp/xregexp-all-min.js"
+  for f in "${sdkjs_files[@]}"; do echo "[dry-run] copy $f"; done
+  echo "[dry-run] copy vendor/xregexp/xregexp-all-min.js"
   exit 0
 fi
 
@@ -145,7 +149,7 @@ done
 mkdir -p "$stage_sdkjs/vendor/xregexp"
 cp "$vendor_src/xregexp/xregexp-all-min.js" "$stage_sdkjs/vendor/xregexp/"
 
-# Preserve AllFonts.js si deja present
+# Preserve AllFonts.js if already present
 if [[ -f "$sdkjs_dest/common/AllFonts.js" ]]; then
   mkdir -p "$stage_sdkjs/common"
   cp "$sdkjs_dest/common/AllFonts.js" "$stage_sdkjs/common/AllFonts.js"
@@ -159,5 +163,5 @@ echo ""
 echo "bin/    : $(du -sh "$bin_dest" | cut -f1)"
 echo "sdkjs/  : $(du -sh "$sdkjs_dest" | cut -f1)"
 echo ""
-echo "Prochaine etape — copier AllFonts.js si pas encore fait:"
+echo "Next step -- copy AllFonts.js if not already done:"
 echo "  cp allfontgennew/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js"

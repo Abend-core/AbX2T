@@ -1,19 +1,24 @@
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copies unmodified binaries/JS from a local ONLYOFFICE Desktop Editors install (Copyright (C)
+# Ascensio System SIA, AGPLv3) into this bundle. See /THIRD-PARTY-NOTICES.md.
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-Synchronise le bundle x2t depuis une installation ONLYOFFICE Desktop Editors locale (Windows).
+Synchronizes the x2t bundle from a local ONLYOFFICE Desktop Editors installation (Windows).
 
 .DESCRIPTION
-Equivalent Windows de build/scripts/sync_from_release.sh (macOS) : peuple x2t/bin/windows-x86_64/
-(binaire x2t.exe + DLLs + DoctRenderer.config) et x2t/sdkjs/ (JS minimal necessaire a la
-conversion) depuis une installation ONLYOFFICE Desktop Editors deja presente sur le poste.
+Windows equivalent of build/scripts/sync_from_release.sh (macOS): populates
+x2t/bin/windows-x86_64/ (x2t.exe binary + DLLs + DoctRenderer.config) and x2t/sdkjs/
+(minimal JS needed for conversion) from an ONLYOFFICE Desktop Editors installation
+already present on the machine.
 
 .PARAMETER InstallDir
-Dossier d'installation ONLYOFFICE Desktop Editors. Doit contenir converter/ et editors/.
-Defaut : C:\Program Files\ONLYOFFICE\DesktopEditors
+ONLYOFFICE Desktop Editors installation directory. Must contain converter/ and editors/.
+Default: C:\Program Files\ONLYOFFICE\DesktopEditors
 
 .PARAMETER DryRun
-Affiche ce qui serait fait sans rien ecrire.
+Shows what would be done without writing anything.
 
 .EXAMPLE
 powershell -ExecutionPolicy Bypass -File sync_from_install_windows.ps1
@@ -32,17 +37,17 @@ $converterDir = Join-Path $InstallDir 'converter'
 $editorsDir   = Join-Path $InstallDir 'editors'
 
 if (-not (Test-Path (Join-Path $converterDir 'x2t.exe'))) {
-    Write-Error "x2t.exe introuvable dans $converterDir -- verifie -InstallDir ou installe ONLYOFFICE Desktop Editors"
+    Write-Error "x2t.exe not found in $converterDir -- check -InstallDir or install ONLYOFFICE Desktop Editors"
 }
 if (-not (Test-Path $editorsDir)) {
-    Write-Error "Dossier editors introuvable : $editorsDir"
+    Write-Error "editors directory not found: $editorsDir"
 }
 
 $sdkjsSrc   = Join-Path $editorsDir 'sdkjs'
 $vendorSrc  = Join-Path $editorsDir 'web-apps\vendor'
 
-if (-not (Test-Path $sdkjsSrc))  { Write-Error "editors\sdkjs introuvable : $sdkjsSrc" }
-if (-not (Test-Path $vendorSrc)) { Write-Error "editors\web-apps\vendor introuvable : $vendorSrc" }
+if (-not (Test-Path $sdkjsSrc))  { Write-Error "editors\sdkjs not found: $sdkjsSrc" }
+if (-not (Test-Path $vendorSrc)) { Write-Error "editors\web-apps\vendor not found: $vendorSrc" }
 
 $binDest   = Join-Path $bundleRoot 'bin\windows-x86_64'
 $sdkjsDest = Join-Path $bundleRoot 'sdkjs'
@@ -52,7 +57,7 @@ Write-Host "Editors     : $editorsDir"
 Write-Host "Destination bin   : $binDest"
 Write-Host "Destination sdkjs : $sdkjsDest"
 
-# Fichiers JS necessaires pour la conversion (memes que sync_from_release.sh sur macOS)
+# JS files needed for conversion (same as sync_from_release.sh on macOS)
 $sdkjsFiles = @(
     'common\Native\native.js',
     'common\Native\jquery_native.js',
@@ -77,7 +82,7 @@ if (-not (Test-Path (Join-Path $vendorSrc 'xregexp\xregexp-all-min.js'))) {
     $missing += 'web-apps\vendor\xregexp\xregexp-all-min.js'
 }
 if ($missing.Count -gt 0) {
-    Write-Error "Fichiers manquants dans l'installation :`n$($missing -join "`n")"
+    Write-Error "Missing files in the installation:`n$($missing -join "`n")"
 }
 
 $dlls = @(Get-ChildItem $converterDir -Filter '*.dll' -ErrorAction SilentlyContinue)
@@ -85,13 +90,13 @@ $dlls = @(Get-ChildItem $converterDir -Filter '*.dll' -ErrorAction SilentlyConti
 if ($DryRun) {
     Write-Host ""
     Write-Host "[dry-run] --- bin\windows-x86_64\ ---"
-    Write-Host "[dry-run] copier x2t.exe"
-    foreach ($dll in $dlls) { Write-Host "[dry-run] copier $($dll.Name)" }
-    Write-Host "[dry-run] ecrire DoctRenderer.config"
+    Write-Host "[dry-run] copy x2t.exe"
+    foreach ($dll in $dlls) { Write-Host "[dry-run] copy $($dll.Name)" }
+    Write-Host "[dry-run] write DoctRenderer.config"
     Write-Host ""
     Write-Host "[dry-run] --- sdkjs\ ---"
-    foreach ($f in $sdkjsFiles) { Write-Host "[dry-run] copier $f" }
-    Write-Host "[dry-run] copier vendor\xregexp\xregexp-all-min.js"
+    foreach ($f in $sdkjsFiles) { Write-Host "[dry-run] copy $f" }
+    Write-Host "[dry-run] copy vendor\xregexp\xregexp-all-min.js"
     exit 0
 }
 
@@ -134,7 +139,7 @@ try {
     New-Item -ItemType Directory -Force -Path $vendorDest | Out-Null
     Copy-Item (Join-Path $vendorSrc 'xregexp\xregexp-all-min.js') $vendorDest -Force
 
-    # Preserve AllFonts.js si deja present
+    # Preserve AllFonts.js if already present
     $existingAllFonts = Join-Path $sdkjsDest 'common\AllFonts.js'
     if (Test-Path $existingAllFonts) {
         $preservedDest = Join-Path $stageSdkjs 'common'
@@ -153,5 +158,5 @@ Write-Host ""
 Write-Host "bin\windows-x86_64\ : OK ($binDest)"
 Write-Host "sdkjs\              : OK ($sdkjsDest)"
 Write-Host ""
-Write-Host "Prochaine etape -- copier AllFonts.js si pas encore fait :"
+Write-Host "Next step -- copy AllFonts.js if not already done:"
 Write-Host "  Copy-Item allfontgennew\output\windows-x86_64\fonts\AllFonts.js x2t\sdkjs\common\AllFonts.js"

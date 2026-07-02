@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Applies a build-time patch to one ONLYOFFICE/core source file (Copyright (C) Ascensio System
+# SIA, AGPLv3): ApplicationFontsWorker.cpp, guards thumbnail generation behind
+# ALLFONTSGEN_DISABLE_THUMBNAILS so allfontsgen can build without the raster/graphics deps it
+# doesn't need. Output goes to build/generated/ (not committed); the vendored copy under
+# allfontgennew/src/ is left untouched. See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 

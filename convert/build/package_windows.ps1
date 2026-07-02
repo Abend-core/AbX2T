@@ -1,18 +1,22 @@
+# AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Packages unmodified ONLYOFFICE binaries/JS (Copyright (C) Ascensio System SIA, AGPLv3) into
+# assets.zip, unchanged. See /THIRD-PARTY-NOTICES.md.
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-Assemble convert/convert/assets.zip (ressource embarquee dans Abx2t.exe).
+Assembles convert/convert/assets.zip (resource embedded in Abx2t.exe).
 
 .DESCRIPTION
-Rassemble x2t.exe + toutes les DLL (x2t.exe les importe statiquement au demarrage, impossible
-d'en retirer une seule sans recompiler) + x2t/sdkjs/ complet (common, word, cell, slide, visio,
-pdf, vendor) + x2t/dictionaries/ (depuis x2t/bin/windows-x86_64/ et x2t/sdkjs/, peuples par
-x2t/build/scripts/sync_from_install_windows.ps1) et allfontsgen.exe (depuis
-allfontgennew/build/bin/windows-x86_64/, compile par allfontgennew/build/scripts/build_windows.ps1
-si absent) dans convert/convert/assets.zip. Ce zip est extrait automatiquement par Abx2t.exe dans
-un dossier resources/ au premier lancement (voir convert/convert/Program.cs).
+Gathers x2t.exe + all DLLs (x2t.exe statically imports them at startup, none can be
+removed without recompiling) + the full x2t/sdkjs/ tree (common, word, cell, slide, visio,
+pdf, vendor) + x2t/dictionaries/ (from x2t/bin/windows-x86_64/ and x2t/sdkjs/, populated by
+x2t/build/scripts/sync_from_install_windows.ps1) and allfontsgen.exe (from
+allfontgennew/build/bin/windows-x86_64/, compiled by allfontgennew/build/scripts/build_windows.ps1
+if missing) into convert/convert/assets.zip. This zip is automatically extracted by Abx2t.exe
+into a resources/ folder on first run (see convert/convert/Program.cs).
 
-Prerequis : avoir lance x2t/build/scripts/sync_from_install_windows.ps1 au moins une fois.
+Prerequisite: run x2t/build/scripts/sync_from_install_windows.ps1 at least once.
 
 .EXAMPLE
 powershell -ExecutionPolicy Bypass -File convert\build\package_windows.ps1
@@ -31,20 +35,20 @@ $allfontsgen  = Join-Path $repo 'allfontgennew\build\bin\windows-x86_64\allfonts
 $assetsZip    = Join-Path $convertRoot 'convert\assets.zip'
 
 if (-not (Test-Path (Join-Path $x2tBin 'x2t.exe'))) {
-    Write-Error "x2t.exe introuvable dans $x2tBin -- lance d'abord x2t\build\scripts\sync_from_install_windows.ps1"
+    Write-Error "x2t.exe not found in $x2tBin -- run x2t\build\scripts\sync_from_install_windows.ps1 first"
 }
 if (-not (Test-Path $sdkjsSrc)) {
-    Write-Error "sdkjs introuvable dans $sdkjsSrc -- lance d'abord x2t\build\scripts\sync_from_install_windows.ps1"
+    Write-Error "sdkjs not found in $sdkjsSrc -- run x2t\build\scripts\sync_from_install_windows.ps1 first"
 }
 if (-not (Test-Path $dictSrc)) {
-    Write-Error "dictionaries introuvable dans $dictSrc"
+    Write-Error "dictionaries not found in $dictSrc"
 }
 
 if (-not (Test-Path $allfontsgen)) {
-    Write-Host "allfontsgen.exe introuvable -- compilation..."
+    Write-Host "allfontsgen.exe not found -- compiling..."
     & powershell -ExecutionPolicy Bypass -File (Join-Path $repo 'allfontgennew\build\scripts\build_windows.ps1')
     if (-not (Test-Path $allfontsgen)) {
-        Write-Error "Echec compilation allfontsgen.exe"
+        Write-Error "Failed to compile allfontsgen.exe"
     }
 }
 
@@ -58,6 +62,11 @@ try {
 
     Copy-Item $sdkjsSrc (Join-Path $stage 'sdkjs') -Recurse -Force
     Copy-Item $dictSrc (Join-Path $stage 'dictionaries') -Recurse -Force
+
+    # License texts: keep the single-exe distribution self-contained legally --
+    # extracted to resources\ on first run alongside the components they cover.
+    Copy-Item (Join-Path $repo 'LICENSE') $stage -Force
+    Copy-Item (Join-Path $repo 'THIRD-PARTY-NOTICES.md') $stage -Force
 
     @'
 <Settings>
@@ -79,4 +88,4 @@ finally {
 
 Write-Host ""
 Write-Host "OK: $assetsZip"
-Write-Host "Prochaine etape : dotnet publish convert\convert\convert.csproj -c Release"
+Write-Host "Next step: dotnet publish convert\convert\convert.csproj -c Release"

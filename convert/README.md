@@ -12,10 +12,15 @@ Formats acceptes en entree/sortie : voir [docs/SUPPORTED_FORMATS.md](docs/SUPPOR
 Lancer sans argument affiche les extensions acceptees :
 
 ```
-Usage: Abx2t.exe <source> <sortie>
-  Entree acceptee : .doc, .docx, ...
-  Sortie acceptee : .pdf, .docx, ...
+Usage: Abx2t.exe <source> <output>
+  Accepted input  : .doc, .docx, ...
+  Accepted output : .pdf, .docx, ...
+  Abx2t.exe --license : AGPLv3 license and ONLYOFFICE attribution
 ```
+
+`Abx2t.exe --license` prints the license (AGPLv3) and attribution for the bundled ONLYOFFICE
+components (x2t, sdkjs) — full detail in [THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md)
+at the root of the repository.
 
 Source et destination peuvent etre des chemins reseau (`\\serveur\partage\...`) ou un lecteur
 mappe (`D:\...`) : le fichier source est copie en local (TEMP systeme) avant conversion, et le
@@ -29,12 +34,16 @@ en cas d'erreur reseau).
 
 ```
 Abx2t.exe
-resources\   <- extrait automatiquement de assets.zip (x2t.exe, DLLs, allfontsgen.exe, sdkjs\, dictionaries\)
-allfonts\    <- genere automatiquement (AllFonts.js, font_selection.bin, specifique a la machine)
+resources\      <- extrait automatiquement de assets.zip (x2t.exe, DLLs, allfontsgen.exe, sdkjs\, dictionaries\)
+allfonts\       <- genere automatiquement (AllFonts.js, font_selection.bin, specifique a la machine)
+custom-fonts\   <- cree automatiquement, vide. Deposer ici des .ttf/.otf a utiliser sans les installer sur le poste.
 ```
 
-Aucune installation manuelle requise. Pour forcer une regeneration des polices (nouvelle police
-installee sur le poste), supprimer `allfonts\AllFonts.js` et relancer une conversion.
+Aucune installation manuelle requise. Les polices systeme (Windows + utilisateur courant) et
+celles deposees dans `custom-fonts\` sont indexees ensemble dans `AllFonts.js`. Ajouter un fichier
+dans `custom-fonts\` declenche automatiquement une regeneration a la prochaine conversion (detection
+par date de modification). Pour forcer une regeneration complete (ex. police systeme mise a jour),
+supprimer `allfonts\AllFonts.js` et relancer une conversion.
 
 Le dossier de travail de la conversion elle-meme (config XML + dossier temp de x2t) est cree
 dans le TEMP systeme et toujours supprime a la fin (succes ou erreur) : rien ne persiste a cote
@@ -64,4 +73,6 @@ dotnet publish convert\convert.csproj -c Release
   (`win-x64`).
 - `convert/build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
   (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) + `x2t/dictionaries/` +
-  `allfontgennew/build/bin/windows-x86_64/allfontsgen.exe`.
+  `allfontgennew/build/bin/windows-x86_64/allfontsgen.exe` + les textes de licence (`LICENSE`,
+  `THIRD-PARTY-NOTICES.md`), extraits dans `resources\` au premier lancement pour que la
+  distribution mono-exe reste autonome juridiquement.

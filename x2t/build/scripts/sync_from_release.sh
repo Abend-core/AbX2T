@@ -128,7 +128,6 @@ cat > "$stage_bin/DoctRenderer.config" <<'CONF'
 <allfonts>../sdkjs/common/AllFonts.js</allfonts>
 <file>../sdkjs/vendor/xregexp/xregexp-all-min.js</file>
 <sdkjs>../sdkjs</sdkjs>
-<dictionaries>../dictionaries</dictionaries>
 </Settings>
 CONF
 

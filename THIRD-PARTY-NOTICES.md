@@ -72,23 +72,6 @@ source code, in accordance with AGPLv3 obligations (section 6, "Corresponding So
 - **Corresponding source**: the unmodified upstream version of every file, including
   `ApplicationFontsWorker.cpp`, is available at <https://github.com/ONLYOFFICE/core>.
 
-## Spell-check dictionaries (`x2t/dictionaries/`)
-
-These dictionaries are **not** ONLYOFFICE/Ascensio works; they are community hunspell
-dictionaries (spelling, hyphenation, thesaurus) redistributed by ONLYOFFICE — and by this
-repository — under their own individual licenses (typically permissive, LGPL, MPL 2.0, or
-WordNet, depending on the dictionary).
-
-Rather than enumerating them here, each dictionary directory ships with its **original
-license and README files preserved verbatim** (e.g. `license.txt`, `README_*.txt`,
-`WordNet_license.txt`), both in this repository and inside the `Abx2t.exe` embedded assets
-extracted to `resources\dictionaries\`. Those files are the authoritative license and
-attribution statement for each dictionary; they must be kept alongside their dictionary
-whenever one is added, updated, or redistributed.
-
-Upstream collection (same layout, licenses included per directory):
-<https://github.com/ONLYOFFICE/dictionaries>.
-
 ## Trademarks
 
 "ONLYOFFICE" and "Ascensio System SIA" are trademarks of their respective owners. AbX2T is not
@@ -100,6 +83,6 @@ components).
 ## AbX2T original code
 
 Everything else in this repository (the `Abx2t.exe` C# code, sync/build scripts,
-documentation) — i.e. everything outside `allfontsgen/src/`, `x2t/bin/`, `x2t/sdkjs/`, and
-`x2t/dictionaries/` — is original work by Hugo Lagouardat (Abend-core), published under the
+documentation) — i.e. everything outside `allfontsgen/src/`, `x2t/bin/`, and `x2t/sdkjs/` —
+is original work by Hugo Lagouardat (Abend-core), published under the
 same AGPLv3 license — see [LICENSE](LICENSE).

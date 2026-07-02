@@ -114,7 +114,6 @@ try {
 <allfonts>..\..\sdkjs\common\AllFonts.js</allfonts>
 <file>..\..\sdkjs\vendor\xregexp\xregexp-all-min.js</file>
 <sdkjs>..\..\sdkjs</sdkjs>
-<dictionaries>..\..\dictionaries</dictionaries>
 </Settings>
 '@ | Set-Content -Path (Join-Path $stageBin 'DoctRenderer.config') -Encoding UTF8
 

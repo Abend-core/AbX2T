@@ -34,7 +34,7 @@ en cas d'erreur reseau).
 
 ```
 Abx2t.exe
-resources\      <- extrait automatiquement de assets.zip (x2t.exe, DLLs, allfontsgen.exe, sdkjs\, dictionaries\)
+resources\      <- extrait automatiquement de assets.zip (x2t.exe, DLLs, allfontsgen.exe, sdkjs\)
 allfonts\       <- genere automatiquement (AllFonts.js, font_selection.bin, specifique a la machine)
 custom-fonts\   <- cree automatiquement, vide. Deposer ici des .ttf/.otf a utiliser sans les installer sur le poste.
 ```
@@ -72,7 +72,7 @@ dotnet publish convert\convert.csproj -c Release
 - `convert/convert/convert.csproj` : `AssemblyName` = `Abx2t`, build self-contained single-file
   (`win-x64`).
 - `convert/build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
-  (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) + `x2t/dictionaries/` +
+  (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) +
   `allfontsgen/build/bin/windows-x86_64/allfontsgen.exe` + les textes de licence (`LICENSE`,
   `THIRD-PARTY-NOTICES.md`), extraits dans `resources\` au premier lancement pour que la
   distribution mono-exe reste autonome juridiquement.

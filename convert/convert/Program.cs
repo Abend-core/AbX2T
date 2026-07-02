@@ -34,10 +34,6 @@ Bundled third-party components:
   Portions of this software are copyright (C) The FreeType Project
   (https://www.freetype.org). All rights reserved.
 
-  Spell-check dictionaries: community hunspell dictionaries under their own licenses;
-  the original license and README files of each dictionary are preserved verbatim in
-  resources\dictionaries\ next to it.
-
 AbX2T is not affiliated with, endorsed by, or sponsored by Ascensio System SIA / ONLYOFFICE.
 Full details: THIRD-PARTY-NOTICES.md and LICENSE, extracted to resources\ on first run and
 available in the source repository.";

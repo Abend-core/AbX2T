@@ -4,7 +4,6 @@
 
 Apres un `git clone`, le bundle contient deja:
 
-- `x2t/dictionaries/` — fr_FR, en_US, en_GB
 - `x2t/build/` — scripts de sync
 - `x2t/test/` — configs de test
 

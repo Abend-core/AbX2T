@@ -10,7 +10,7 @@ Assembles convert/convert/assets.zip (resource embedded in Abx2t.exe).
 .DESCRIPTION
 Gathers x2t.exe + all DLLs (x2t.exe statically imports them at startup, none can be
 removed without recompiling) + the full x2t/sdkjs/ tree (common, word, cell, slide, visio,
-pdf, vendor) + x2t/dictionaries/ (from x2t/bin/windows-x86_64/ and x2t/sdkjs/, populated by
+pdf, vendor) (from x2t/bin/windows-x86_64/ and x2t/sdkjs/, populated by
 x2t/build/scripts/sync_from_install_windows.ps1) and allfontsgen.exe (from
 allfontsgen/build/bin/windows-x86_64/, compiled by allfontsgen/build/scripts/build_windows.ps1
 if missing) into convert/convert/assets.zip. This zip is automatically extracted by Abx2t.exe
@@ -30,7 +30,6 @@ $repo        = (Resolve-Path (Join-Path $convertRoot '..')).Path
 
 $x2tBin       = Join-Path $repo 'x2t\bin\windows-x86_64'
 $sdkjsSrc     = Join-Path $repo 'x2t\sdkjs'
-$dictSrc      = Join-Path $repo 'x2t\dictionaries'
 $allfontsgen  = Join-Path $repo 'allfontsgen\build\bin\windows-x86_64\allfontsgen.exe'
 $assetsZip    = Join-Path $convertRoot 'convert\assets.zip'
 
@@ -39,9 +38,6 @@ if (-not (Test-Path (Join-Path $x2tBin 'x2t.exe'))) {
 }
 if (-not (Test-Path $sdkjsSrc)) {
     Write-Error "sdkjs not found in $sdkjsSrc -- run x2t\build\scripts\sync_from_install_windows.ps1 first"
-}
-if (-not (Test-Path $dictSrc)) {
-    Write-Error "dictionaries not found in $dictSrc"
 }
 
 if (-not (Test-Path $allfontsgen)) {
@@ -61,7 +57,6 @@ try {
     Copy-Item $allfontsgen $stage -Force
 
     Copy-Item $sdkjsSrc (Join-Path $stage 'sdkjs') -Recurse -Force
-    Copy-Item $dictSrc (Join-Path $stage 'dictionaries') -Recurse -Force
 
     # License texts: keep the single-exe distribution self-contained legally --
     # extracted to resources\ on first run alongside the components they cover.
@@ -75,7 +70,6 @@ try {
 <allfonts>./sdkjs/common/AllFonts.js</allfonts>
 <file>./sdkjs/vendor/xregexp/xregexp-all-min.js</file>
 <sdkjs>./sdkjs</sdkjs>
-<dictionaries>./dictionaries</dictionaries>
 </Settings>
 '@ | Set-Content -Path (Join-Path $stage 'DoctRenderer.config') -Encoding UTF8
 

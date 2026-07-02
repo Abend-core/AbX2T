@@ -93,8 +93,7 @@ Copyright (C) 2026 Hugo Lagouardat, [Abend-core](https://github.com/Abend-core) 
 
 This repository bundles **ONLYOFFICE** components (x2t, sdkjs, and a vendored source subset
 used to build `allfontsgen`), Copyright (C) Ascensio System SIA, also under AGPLv3, as well
-as community spell-check dictionaries (each shipping its own license files) and FreeType
-(FTL). Component details, versions, and pointers to the corresponding source code: see
+as FreeType (FTL). Component details, versions, and pointers to the corresponding source code: see
 **[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)**. `Abx2t.exe --license` prints the same
 summary on the command line.
 

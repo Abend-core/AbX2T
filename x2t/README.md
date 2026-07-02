@@ -13,7 +13,6 @@ x2t/
 │       ├── sync_from_release.sh          macOS : peuple bin/ et sdkjs/ depuis une release officielle ONLYOFFICE
 │       ├── sync_from_install_windows.ps1 Windows : peuple bin/windows-x86_64/ et sdkjs/ depuis une install ONLYOFFICE Desktop locale
 │       └── convert.sh                    Point d'entree recommande (macOS) : conversion + nettoyage garanti du temp dir
-├── dictionaries/         fr_FR, en_US, en_GB (commites)
 ├── docs/
 │   ├── SETUP.md          Mise en place sur un nouveau poste
 │   ├── USAGE.md          Convertir un document, lancer les scripts

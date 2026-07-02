@@ -7,8 +7,15 @@
     <AssemblyName>Abx2t</AssemblyName>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
-    <PublishSingleFile>true</PublishSingleFile>
-    <PublishTrimmed>false</PublishTrimmed>
+    <!-- Native AOT: single native exe, no bundled .NET runtime (~5-8 MB of wrapper instead
+         of ~73 MB). Requires publishing on the target OS (no AOT cross-compilation):
+         dotnet publish -c Release [-r win-x64|osx-arm64|linux-x64] on the matching machine. -->
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Fallback without AOT (dotnet publish -p:PublishAot=false), e.g. if the native
+         toolchain (MSVC / Xcode / gcc) is missing: compressed single-file JIT bundle. -->
+    <PublishSingleFile Condition="'$(PublishAot)' != 'true'">true</PublishSingleFile>
+    <EnableCompressionInSingleFile Condition="'$(PublishAot)' != 'true'">true</EnableCompressionInSingleFile>
     <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
     <Product>AbX2T</Product>
     <Authors>Hugo Lagouardat</Authors>

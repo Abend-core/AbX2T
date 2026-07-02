@@ -111,6 +111,7 @@ available in the source repository.";
             Console.WriteLine("First run: extracting components...");
             int r = ExtractAssets(resourcesDir);
             if (r != 0) return r;
+            TryCompressResources(resourcesDir);
             Console.WriteLine("Extraction OK.");
         }
 
@@ -230,6 +231,35 @@ available in the source repository.";
         {
             Console.Error.WriteLine($"Extraction error: {ex.Message}");
             return 1;
+        }
+    }
+
+    // NTFS transparent compression on resources/ (~160 MB -> ~90-100 MB on disk); x2t reads
+    // the files normally. The directory flag is inherited, so files added later (AllFonts.js
+    // copied into sdkjs/common) are compressed too. Best-effort: Windows only, and skipped
+    // silently on filesystems without compression support (FAT32, exFAT, network shares).
+    static void TryCompressResources(string dir)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName               = "compact.exe",
+                Arguments              = $"/c /s:\"{dir}\" /i /q",
+                UseShellExecute        = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError  = true,
+            };
+            using var proc = Process.Start(psi);
+            if (proc == null) return;
+            _ = proc.StandardOutput.ReadToEndAsync();
+            _ = proc.StandardError.ReadToEndAsync();
+            proc.WaitForExit();
+        }
+        catch
+        {
+            // Compression is a disk-footprint optimization, never a failure condition.
         }
     }
 

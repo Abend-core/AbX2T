@@ -45,6 +45,9 @@ dans `custom-fonts\` declenche automatiquement une regeneration a la prochaine c
 par date de modification). Pour forcer une regeneration complete (ex. police systeme mise a jour),
 supprimer `allfonts\AllFonts.js` et relancer une conversion.
 
+`resources\` est compresse NTFS a l'extraction (transparent pour x2t, ~99 Mo sur disque au
+lieu de ~167 Mo) ; sans NTFS (FAT32, partage reseau), la compression est simplement ignoree.
+
 Le dossier de travail de la conversion elle-meme (config XML + dossier temp de x2t) est cree
 dans le TEMP systeme et toujours supprime a la fin (succes ou erreur) : rien ne persiste a cote
 de l'exe ni du fichier de sortie.
@@ -61,16 +64,37 @@ powershell -ExecutionPolicy Bypass -File ..\x2t\build\scripts\sync_from_install_
 # 2. Assembler assets.zip (compile allfontsgen.exe si absent)
 powershell -ExecutionPolicy Bypass -File build\package_windows.ps1
 
-# 3. Builder Abx2t.exe
+# 3. Builder Abx2t.exe (NativeAOT : necessite la toolchain C++ de l'OS, voir ci-dessous)
 dotnet publish convert\convert.csproj -c Release
+```
+
+### Build NativeAOT
+
+Le publish compile en natif (NativeAOT) : exe ~62 Mo au lieu de ~133 Mo, demarrage instantane.
+L'AOT ne cross-compile pas : publier **sur l'OS cible**, avec sa toolchain native installee
+(MSVC sur Windows, Xcode CLT sur macOS, clang/gcc sur Linux).
+
+Sur Windows, si la detection automatique de MSVC echoue (`'vswhere.exe' n'est pas reconnu`),
+lancer le publish depuis un environnement Developer :
+
+```powershell
+cmd /c '"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" && dotnet publish convert\convert.csproj -c Release -p:IlcUseEnvironmentalTools=true'
+```
+
+(vcvars definit `Platform=x64` : la sortie va alors dans `convert\bin\x64\Release\...\publish\`.)
+
+Sans toolchain native disponible, fallback single-file JIT compresse (~97 Mo) :
+
+```powershell
+dotnet publish convert\convert.csproj -c Release -p:PublishAot=false
 ```
 
 ## Architecture
 
 - `convert/convert/Program.cs` : logique C# (validation des formats, extraction, generation des
   polices, appel x2t.exe, staging reseau).
-- `convert/convert/convert.csproj` : `AssemblyName` = `Abx2t`, build self-contained single-file
-  (`win-x64`).
+- `convert/convert/convert.csproj` : `AssemblyName` = `Abx2t`, publish NativeAOT (exe natif
+  unique, `win-x64` par defaut, `-r osx-arm64`/`linux-x64` sur les autres OS).
 - `convert/build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
   (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) +
   `allfontsgen/build/bin/windows-x86_64/allfontsgen.exe` + les textes de licence (`LICENSE`,

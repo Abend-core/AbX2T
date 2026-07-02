@@ -9,6 +9,7 @@
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>false</PublishTrimmed>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
     <Product>AbX2T</Product>
     <Authors>Hugo Lagouardat</Authors>
     <Company>Abend-core</Company>

@@ -15,7 +15,7 @@ usage() {
   cat <<'EOF'
 Usage: zsh x2t/build/scripts/convert.sh <source_file> <output_file> [fontdir]
 
-Converts a document via x2t/bin/x2t, managing the working temp directory
+Converts a document via x2t/bin/macos-arm64/x2t, managing the working temp directory
 ourselves (mktemp + guaranteed cleanup via trap) instead of letting x2t
 create one next to the output file.
 
@@ -44,7 +44,7 @@ file_from=$1
 file_to=$2
 font_dir=${3:-"$workspace_root/allfontsgen/output/macos-arm64/fonts"}
 
-x2t_bin="$bundle_root/bin/x2t"
+x2t_bin="$bundle_root/bin/macos-arm64/x2t"
 all_fonts="$bundle_root/sdkjs/common/AllFonts.js"
 
 [[ -x "$x2t_bin" ]] || { echo "Binary not found: $x2t_bin (run sync_from_release.sh)" >&2; exit 1; }
@@ -69,5 +69,5 @@ cat > "$config" <<CONF
 </TaskQueueDataConvert>
 CONF
 
-cd "$bundle_root/bin"
+cd "$bundle_root/bin/macos-arm64"
 ./x2t "$config"

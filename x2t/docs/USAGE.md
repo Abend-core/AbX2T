@@ -48,7 +48,7 @@ Lancer :
 
 ```sh
 # macOS
-x2t/bin/x2t "/chemin/vers/config.xml"
+x2t/bin/macos-arm64/x2t "/chemin/vers/config.xml"
 
 # Windows
 cd x2t\bin\windows-x86_64

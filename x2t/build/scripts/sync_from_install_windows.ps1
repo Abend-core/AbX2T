@@ -138,7 +138,7 @@ try {
     New-Item -ItemType Directory -Force -Path $vendorDest | Out-Null
     Copy-Item (Join-Path $vendorSrc 'xregexp\xregexp-all-min.js') $vendorDest -Force
 
-    # Preserve AllFonts.js if already present
+    # Preserve AllFonts.js if already present (generated locally by allfontsgen, not part of the install)
     $existingAllFonts = Join-Path $sdkjsDest 'common\AllFonts.js'
     if (Test-Path $existingAllFonts) {
         $preservedDest = Join-Path $stageSdkjs 'common'

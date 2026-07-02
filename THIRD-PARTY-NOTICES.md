@@ -16,6 +16,8 @@ source code, in accordance with AGPLv3 obligations (section 6, "Corresponding So
     **9.4.0.129** (read from the binary's own metadata). Bundled format converters (DjVuFile,
     HwpFile, OFDFile, IWork, StarMath2OOXML, XpsFile, etc.): all present in ONLYOFFICE/core's
     public source tree — no proprietary or undocumented "black box" component.
+  - `x2t/bin/macos-arm64/`: the same `x2t` binary and its `.framework` bundles, macOS build of
+    the same conversion engine, sourced from an official ONLYOFFICE Desktop Editors release.
   - `x2t/sdkjs/`: JavaScript runtime (word/cell/slide/visio/pdf/common) of the same SDK.
     `x2t/sdkjs/common/AllFonts.js` is not upstream code: it is a font index generated locally
     on each machine by `allfontsgen`.

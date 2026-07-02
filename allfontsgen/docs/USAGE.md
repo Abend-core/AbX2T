@@ -80,7 +80,7 @@ Produit dans `output/linux-x86_64/fonts/`.
 ### macOS arm64
 
 ```sh
-x2t/bin/x2t "$(pwd)/allfontsgen/test/config_mac.xml"
+x2t/bin/macos-arm64/x2t "$(pwd)/allfontsgen/test/config_mac.xml"
 ```
 
 ### Windows x86_64

@@ -62,7 +62,7 @@ vendor_src="$editors_dir/web-apps/vendor"
 [[ -d "$sdkjs_src" ]]  || { echo "editors/sdkjs not found: $sdkjs_src" >&2; exit 1; }
 [[ -d "$vendor_src" ]] || { echo "editors/web-apps/vendor not found: $vendor_src" >&2; exit 1; }
 
-bin_dest="$bundle_root/bin"
+bin_dest="$bundle_root/bin/macos-arm64"
 sdkjs_dest="$bundle_root/sdkjs"
 
 echo "Release converter : $converter_dir"
@@ -99,7 +99,7 @@ for f in "${sdkjs_files[@]}"; do [[ -f "$sdkjs_src/$f" ]] || missing+=("$f"); do
 
 if (( dry_run )); then
   echo ""
-  echo "[dry-run] --- bin/ ---"
+  echo "[dry-run] --- bin/macos-arm64/ ---"
   echo "[dry-run] copy x2t"
   for fw in "$converter_dir"/*.framework; do [[ -d "$fw" ]] && echo "[dry-run] copy ${fw:t}"; done
   echo "[dry-run] write DoctRenderer.config"
@@ -123,15 +123,18 @@ done
 
 cat > "$stage_bin/DoctRenderer.config" <<'CONF'
 <Settings>
-<file>../sdkjs/common/Native/native.js</file>
-<file>../sdkjs/common/Native/jquery_native.js</file>
-<allfonts>../sdkjs/common/AllFonts.js</allfonts>
-<file>../sdkjs/vendor/xregexp/xregexp-all-min.js</file>
-<sdkjs>../sdkjs</sdkjs>
+<file>../../sdkjs/common/Native/native.js</file>
+<file>../../sdkjs/common/Native/jquery_native.js</file>
+<allfonts>../../sdkjs/common/AllFonts.js</allfonts>
+<file>../../sdkjs/vendor/xregexp/xregexp-all-min.js</file>
+<sdkjs>../../sdkjs</sdkjs>
 </Settings>
 CONF
 
+# bin_dest is our own os-arch subfolder (bin/macos-arm64/, mirroring bin/windows-x86_64/) --
+# safe to wipe wholesale, sibling platform folders under bin/ are untouched.
 rm -rf "$bin_dest"
+mkdir -p "${bin_dest:h}"
 mv "$stage_bin" "$bin_dest"
 trap - EXIT
 
@@ -148,7 +151,7 @@ done
 mkdir -p "$stage_sdkjs/vendor/xregexp"
 cp "$vendor_src/xregexp/xregexp-all-min.js" "$stage_sdkjs/vendor/xregexp/"
 
-# Preserve AllFonts.js if already present
+# Preserve AllFonts.js if already present (generated locally by allfontsgen, not part of the release)
 if [[ -f "$sdkjs_dest/common/AllFonts.js" ]]; then
   mkdir -p "$stage_sdkjs/common"
   cp "$sdkjs_dest/common/AllFonts.js" "$stage_sdkjs/common/AllFonts.js"
@@ -159,8 +162,8 @@ mv "$stage_sdkjs" "$sdkjs_dest"
 trap - EXIT
 
 echo ""
-echo "bin/    : $(du -sh "$bin_dest" | cut -f1)"
-echo "sdkjs/  : $(du -sh "$sdkjs_dest" | cut -f1)"
+echo "bin/macos-arm64/ : $(du -sh "$bin_dest" | cut -f1)"
+echo "sdkjs/           : $(du -sh "$sdkjs_dest" | cut -f1)"
 echo ""
 echo "Next step -- copy AllFonts.js if not already done:"
 echo "  cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js"

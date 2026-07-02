@@ -9,7 +9,7 @@ Apres un `git clone`, le bundle contient deja:
 
 Ce qui manque et doit etre genere:
 
-- `x2t/bin/` — binaire x2t + frameworks (depuis une release officielle ONLYOFFICE)
+- `x2t/bin/macos-arm64/` — binaire x2t + frameworks (depuis une release officielle ONLYOFFICE)
 - `x2t/sdkjs/` — runtime JS minimal (depuis la meme release)
 - `allfontsgen/output/` — polices (genere par allfontsgen, compile depuis core-master)
 
@@ -33,7 +33,7 @@ zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources
 ```
 
 Produit:
-- `x2t/bin/` (~112 Mo — binaire, frameworks, DoctRenderer.config)
+- `x2t/bin/macos-arm64/` (~112 Mo — binaire, frameworks, DoctRenderer.config)
 - `x2t/sdkjs/` (~42 Mo — JS minimal necessaire a la conversion)
 
 ### 2. Compiler allfontsgen et generer les polices
@@ -60,7 +60,7 @@ cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js
 ### 4. Tester
 
 ```sh
-x2t/bin/x2t "$(pwd)/x2t/test/config_mac.xml"
+x2t/bin/macos-arm64/x2t "$(pwd)/x2t/test/config_mac.xml"
 ```
 
 Produit: `x2t/test/*.pdf`

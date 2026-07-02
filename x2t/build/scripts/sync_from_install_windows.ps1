@@ -138,10 +138,16 @@ try {
     New-Item -ItemType Directory -Force -Path $vendorDest | Out-Null
     Copy-Item (Join-Path $vendorSrc 'xregexp\xregexp-all-min.js') $vendorDest -Force
 
-    # Merge into sdkjsDest instead of wiping it -- preserves AllFonts.js and any other
-    # generated/unlisted content (e.g. sdk-all.cache) instead of deleting it.
-    New-Item -ItemType Directory -Force -Path $sdkjsDest | Out-Null
-    Copy-Item (Join-Path $stageSdkjs '*') $sdkjsDest -Recurse -Force
+    # Preserve AllFonts.js if already present (generated locally by allfontsgen, not part of the install)
+    $existingAllFonts = Join-Path $sdkjsDest 'common\AllFonts.js'
+    if (Test-Path $existingAllFonts) {
+        $preservedDest = Join-Path $stageSdkjs 'common'
+        New-Item -ItemType Directory -Force -Path $preservedDest | Out-Null
+        Copy-Item $existingAllFonts (Join-Path $preservedDest 'AllFonts.js') -Force
+    }
+
+    if (Test-Path $sdkjsDest) { Remove-Item $sdkjsDest -Recurse -Force }
+    Move-Item $stageSdkjs $sdkjsDest
 }
 finally {
     if (Test-Path $stageSdkjs) { Remove-Item $stageSdkjs -Recurse -Force }

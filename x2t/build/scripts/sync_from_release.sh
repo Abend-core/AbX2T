@@ -151,11 +151,14 @@ done
 mkdir -p "$stage_sdkjs/vendor/xregexp"
 cp "$vendor_src/xregexp/xregexp-all-min.js" "$stage_sdkjs/vendor/xregexp/"
 
-# Merge into sdkjs_dest instead of wiping it -- preserves AllFonts.js and any other
-# generated/unlisted content (e.g. sdk-all.cache) instead of deleting it.
-mkdir -p "$sdkjs_dest"
-cp -R "$stage_sdkjs/." "$sdkjs_dest/"
-rm -rf "$stage_sdkjs"
+# Preserve AllFonts.js if already present (generated locally by allfontsgen, not part of the release)
+if [[ -f "$sdkjs_dest/common/AllFonts.js" ]]; then
+  mkdir -p "$stage_sdkjs/common"
+  cp "$sdkjs_dest/common/AllFonts.js" "$stage_sdkjs/common/AllFonts.js"
+fi
+
+rm -rf "$sdkjs_dest"
+mv "$stage_sdkjs" "$sdkjs_dest"
 trap - EXIT
 
 echo ""

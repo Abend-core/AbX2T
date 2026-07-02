@@ -35,7 +35,7 @@ Bundled third-party components:
   (https://www.freetype.org). All rights reserved.
 
 AbX2T is not affiliated with, endorsed by, or sponsored by Ascensio System SIA / ONLYOFFICE.
-Full details: THIRD-PARTY-NOTICES.md and LICENSE, extracted to resources\ on first run and
+Full details: THIRD-PARTY-NOTICES.md and LICENSE, extracted to resources/ on first run and
 available in the source repository.";
 
     // Formats read by ONLYOFFICE in this bundle (word/cell/slide/visio/pdf + x2t/bin DLLs, see
@@ -66,10 +66,11 @@ available in the source repository.";
 
         if (args.Length < 2)
         {
-            Console.Error.WriteLine("Usage: Abx2t.exe <source> <output>");
+            string progName = Path.GetFileName(Environment.ProcessPath) ?? "Abx2t";
+            Console.Error.WriteLine($"Usage: {progName} <source> <output>");
             Console.Error.WriteLine($"  Accepted input  : .{string.Join(", .", InputExtensions)}");
             Console.Error.WriteLine($"  Accepted output : .{string.Join(", .", OutputExtensions)}");
-            Console.Error.WriteLine("  Abx2t.exe --license : AGPLv3 license and ONLYOFFICE attribution");
+            Console.Error.WriteLine($"  {progName} --license : AGPLv3 license and ONLYOFFICE attribution");
             return 1;
         }
 
@@ -102,7 +103,7 @@ available in the source repository.";
         string resourcesDir   = Path.Combine(exeDir, "resources");
         string allfontsDir    = Path.Combine(exeDir, "allfonts");
         string customFontsDir = Path.Combine(exeDir, "custom-fonts");
-        string x2tPath        = Path.Combine(resourcesDir, "x2t.exe");
+        string x2tPath        = Path.Combine(resourcesDir, OperatingSystem.IsWindows() ? "x2t.exe" : "x2t");
         string allFonts       = Path.Combine(allfontsDir, "AllFonts.js");
 
         // Extract assets if missing (x2t.exe, DLLs, allfontsgen.exe, sdkjs -> resources/)
@@ -223,6 +224,17 @@ available in the source repository.";
                 Console.Error.WriteLine("Error: assets.zip not found inside the executable");
                 return 1;
             }
+
+            // On macOS, x2t/*.framework bundles rely on symlinks (Versions/Current -> A, etc.)
+            // and on their code signature's extended attributes. System.IO.Compression.ZipArchive
+            // does not restore symlinks on extract (it writes a regular file containing the link
+            // target's text instead), which silently breaks the frameworks. ditto is the
+            // macOS-native tool that round-trips both correctly, matching how package_macos.sh
+            // built this archive.
+            if (OperatingSystem.IsMacOS())
+                return ExtractAssetsViaDitto(zip, destDir);
+
+            Directory.CreateDirectory(destDir);
             using var archive = new ZipArchive(zip, ZipArchiveMode.Read);
             archive.ExtractToDirectory(destDir, overwriteFiles: true);
             return 0;
@@ -231,6 +243,44 @@ available in the source repository.";
         {
             Console.Error.WriteLine($"Extraction error: {ex.Message}");
             return 1;
+        }
+    }
+
+    static int ExtractAssetsViaDitto(Stream zip, string destDir)
+    {
+        string tempZip = Path.Combine(Path.GetTempPath(), $"assets_{Guid.NewGuid():N}.zip");
+        try
+        {
+            using (var file = File.Create(tempZip))
+                zip.CopyTo(file);
+
+            Directory.CreateDirectory(destDir);
+            var psi = new ProcessStartInfo
+            {
+                FileName               = "/usr/bin/ditto",
+                UseShellExecute        = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError  = true,
+            };
+            psi.ArgumentList.Add("-x");
+            psi.ArgumentList.Add("-k");
+            psi.ArgumentList.Add(tempZip);
+            psi.ArgumentList.Add(destDir);
+
+            using var proc = Process.Start(psi)!;
+            string stderr = proc.StandardError.ReadToEnd();
+            proc.WaitForExit();
+            if (proc.ExitCode != 0)
+            {
+                Console.Error.WriteLine($"ditto extraction error (code {proc.ExitCode})");
+                if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
+                return proc.ExitCode;
+            }
+            return 0;
+        }
+        finally
+        {
+            File.Delete(tempZip);
         }
     }
 
@@ -265,10 +315,11 @@ available in the source repository.";
 
     static int GenerateFonts(string resourcesDir, string allfontsDir, string allFontsPath, string customFontsDir)
     {
-        string allfontsgen = Path.Combine(resourcesDir, "allfontsgen.exe");
+        string allfontsgenName = OperatingSystem.IsWindows() ? "allfontsgen.exe" : "allfontsgen";
+        string allfontsgen = Path.Combine(resourcesDir, allfontsgenName);
         if (!File.Exists(allfontsgen))
         {
-            Console.Error.WriteLine($"Error: allfontsgen.exe not found in {resourcesDir}");
+            Console.Error.WriteLine($"Error: {allfontsgenName} not found in {resourcesDir}");
             return 1;
         }
 
@@ -278,18 +329,24 @@ available in the source repository.";
         Directory.CreateDirectory(tmp);
         try
         {
+            string selectionPath  = Path.Combine(tmp, "font_selection.bin");
+            string allFontsTmp    = Path.Combine(tmp, "AllFonts.js");
+            string allFontsWebTmp = Path.Combine(tmp, "AllFonts2.js");
+
             var psi = new ProcessStartInfo
             {
                 FileName         = allfontsgen,
-                Arguments        = $"--use-system=true --use-system-user-fonts=true " +
-                                   $"\"--input={customFontsDir}\" " +
-                                   $"\"--selection={tmp}\\font_selection.bin\" " +
-                                   $"\"--allfonts={tmp}\\AllFonts.js\" " +
-                                   $"\"--allfonts-web={tmp}\\AllFonts2.js\" " +
-                                   $"\"--output-web={tmp}\"",
                 WorkingDirectory = resourcesDir,
                 UseShellExecute  = false,
             };
+            psi.ArgumentList.Add("--use-system=true");
+            psi.ArgumentList.Add("--use-system-user-fonts=true");
+            psi.ArgumentList.Add($"--input={customFontsDir}");
+            psi.ArgumentList.Add($"--selection={selectionPath}");
+            psi.ArgumentList.Add($"--allfonts={allFontsTmp}");
+            psi.ArgumentList.Add($"--allfonts-web={allFontsWebTmp}");
+            psi.ArgumentList.Add($"--output-web={tmp}");
+
             using var proc = Process.Start(psi)!;
             proc.WaitForExit();
             if (proc.ExitCode != 0)
@@ -298,12 +355,12 @@ available in the source repository.";
                 return 1;
             }
 
-            File.Copy($"{tmp}\\AllFonts.js",        allFontsPath, overwrite: true);
-            File.Copy($"{tmp}\\font_selection.bin",  Path.Combine(allfontsDir, "font_selection.bin"), overwrite: true);
+            File.Copy(allFontsTmp, allFontsPath, overwrite: true);
+            File.Copy(selectionPath, Path.Combine(allfontsDir, "font_selection.bin"), overwrite: true);
 
             string sdkCommon = Path.Combine(resourcesDir, "sdkjs", "common");
             if (Directory.Exists(sdkCommon))
-                File.Copy($"{tmp}\\AllFonts.js", Path.Combine(sdkCommon, "AllFonts.js"), overwrite: true);
+                File.Copy(allFontsTmp, Path.Combine(sdkCommon, "AllFonts.js"), overwrite: true);
 
             return 0;
         }

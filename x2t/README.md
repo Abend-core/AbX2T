@@ -6,8 +6,8 @@ Bundle de conversion de documents ONLYOFFICE pour macOS arm64.
 
 ```
 x2t/
-├── bin/                  Binaire x2t + DLLs/frameworks + DoctRenderer.config (gitignore, genere)
-│   └── windows-x86_64/   Sous-dossier Windows (genere par sync_from_install_windows.ps1)
+├── bin/                  Binaire x2t + DLLs/frameworks + DoctRenderer.config (commite)
+│   └── windows-x86_64/   Sous-dossier Windows (peuple par sync_from_install_windows.ps1)
 ├── build/
 │   └── scripts/
 │       ├── sync_from_release.sh          macOS : peuple bin/ et sdkjs/ depuis une release officielle ONLYOFFICE
@@ -18,7 +18,9 @@ x2t/
 │   ├── SETUP.md          Mise en place sur un nouveau poste
 │   ├── USAGE.md          Convertir un document, lancer les scripts
 │   └── MAINTENANCE.md    Mise a jour depuis upstream
-├── sdkjs/                Runtime JS minimal (gitignore, genere)
+├── sdkjs/                Runtime JS complet : common, word, cell, slide, visio, pdf, vendor
+│                         (commite, ~50 Mo), embarque integralement par
+│                         convert/build/package_windows.ps1 (voir convert/docs/SUPPORTED_FORMATS.md)
 └── test/
     └── config_mac.xml    Config de test pour la conversion docx→pdf
 ```

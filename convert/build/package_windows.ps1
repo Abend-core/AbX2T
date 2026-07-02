@@ -4,8 +4,10 @@
 Assemble convert/convert/assets.zip (ressource embarquee dans Abx2t.exe).
 
 .DESCRIPTION
-Rassemble x2t.exe + DLLs + sdkjs + dictionaries (depuis x2t/bin/windows-x86_64/ et x2t/sdkjs/,
-peuples par x2t/build/scripts/sync_from_install_windows.ps1) et allfontsgen.exe (depuis
+Rassemble x2t.exe + toutes les DLL (x2t.exe les importe statiquement au demarrage, impossible
+d'en retirer une seule sans recompiler) + x2t/sdkjs/ complet (common, word, cell, slide, visio,
+pdf, vendor) + x2t/dictionaries/ (depuis x2t/bin/windows-x86_64/ et x2t/sdkjs/, peuples par
+x2t/build/scripts/sync_from_install_windows.ps1) et allfontsgen.exe (depuis
 allfontgennew/build/bin/windows-x86_64/, compile par allfontgennew/build/scripts/build_windows.ps1
 si absent) dans convert/convert/assets.zip. Ce zip est extrait automatiquement par Abx2t.exe dans
 un dossier resources/ au premier lancement (voir convert/convert/Program.cs).

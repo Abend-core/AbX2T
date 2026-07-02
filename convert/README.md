@@ -1,7 +1,7 @@
 # convert
 
-Wrapper Windows autonome (`Abx2t.exe`) pour convertir `.doc`/`.docx` en `.pdf` via `x2t.exe`
-(ONLYOFFICE).
+Wrapper Windows autonome (`Abx2t.exe`) pour convertir des documents via `x2t.exe` (ONLYOFFICE).
+Formats acceptes en entree/sortie : voir [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md).
 
 ## Usage
 
@@ -9,9 +9,17 @@ Wrapper Windows autonome (`Abx2t.exe`) pour convertir `.doc`/`.docx` en `.pdf` v
 .\Abx2t.exe "rapport.docx" "rapport.pdf"
 ```
 
+Lancer sans argument affiche les extensions acceptees :
+
+```
+Usage: Abx2t.exe <source> <sortie>
+  Entree acceptee : .doc, .docx, ...
+  Sortie acceptee : .pdf, .docx, ...
+```
+
 Source et destination peuvent etre des chemins reseau (`\\serveur\partage\...`) ou un lecteur
 mappe (`D:\...`) : le fichier source est copie en local (TEMP systeme) avant conversion, et le
-PDF final est copie vers la destination reelle une fois la conversion terminee. Ca evite de
+fichier final est copie vers la destination reelle une fois la conversion terminee. Ca evite de
 faire dependre x2t.exe du comportement d'un partage SMB (verrous, latence, ecriture partielle
 en cas d'erreur reseau).
 
@@ -30,7 +38,7 @@ installee sur le poste), supprimer `allfonts\AllFonts.js` et relancer une conver
 
 Le dossier de travail de la conversion elle-meme (config XML + dossier temp de x2t) est cree
 dans le TEMP systeme et toujours supprime a la fin (succes ou erreur) : rien ne persiste a cote
-de l'exe ni du PDF de sortie.
+de l'exe ni du fichier de sortie.
 
 ## Reconstruire assets.zip (mainteneurs)
 
@@ -50,9 +58,10 @@ dotnet publish convert\convert.csproj -c Release
 
 ## Architecture
 
-- `convert/convert/Program.cs` : logique C# (extraction, generation des polices, appel x2t.exe,
-  staging reseau).
+- `convert/convert/Program.cs` : logique C# (validation des formats, extraction, generation des
+  polices, appel x2t.exe, staging reseau).
 - `convert/convert/convert.csproj` : `AssemblyName` = `Abx2t`, build self-contained single-file
   (`win-x64`).
 - `convert/build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
-  + `x2t/sdkjs/` + `x2t/dictionaries/` + `allfontgennew/build/bin/windows-x86_64/allfontsgen.exe`.
+  (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) + `x2t/dictionaries/` +
+  `allfontgennew/build/bin/windows-x86_64/allfontsgen.exe`.

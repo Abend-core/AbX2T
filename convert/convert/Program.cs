@@ -7,11 +7,31 @@ using System.Xml;
 
 class Program
 {
+    // Formats lus par ONLYOFFICE dans ce bundle (word/cell/slide/visio/pdf + DLLs x2t/bin, voir
+    // convert/docs/SUPPORTED_FORMATS.md). Formats ecrits : sous-ensemble reellement inscriptible
+    // (les formats legacy binaires et e-book/scan sont lus mais jamais reecrits par ONLYOFFICE).
+    static readonly string[] InputExtensions = {
+        "doc","docx","docm","dotx","dotm","odt","ott","rtf","txt","html","mht","epub","fb2","mobi","hwp","hwpx","md",
+        "ppt","pptx","pptm","ppsx","ppsm","potx","potm","odp","otp",
+        "xls","xlsx","xlsm","xltx","xltm","xlsb","ods","ots","csv",
+        "pdf","djvu","xps","ofd",
+        "vsdx","vssx","vstx","vsdm","vssm","vstm",
+    };
+
+    static readonly string[] OutputExtensions = {
+        "docx","odt","rtf","txt","html","pdf",
+        "pptx","odp",
+        "xlsx","ods","csv",
+        "xps",
+    };
+
     static int Main(string[] args)
     {
         if (args.Length < 2)
         {
-            Console.Error.WriteLine("Usage: Abx2t.exe <source.docx|source.doc> <output.pdf>");
+            Console.Error.WriteLine("Usage: Abx2t.exe <source> <sortie>");
+            Console.Error.WriteLine($"  Entree acceptee : .{string.Join(", .", InputExtensions)}");
+            Console.Error.WriteLine($"  Sortie acceptee : .{string.Join(", .", OutputExtensions)}");
             return 1;
         }
 
@@ -24,16 +44,19 @@ class Program
             return 1;
         }
 
-        string inputExt = Path.GetExtension(input).ToLowerInvariant();
-        if (inputExt != ".docx" && inputExt != ".doc")
+        string inputExt = Path.GetExtension(input).ToLowerInvariant().TrimStart('.');
+        if (Array.IndexOf(InputExtensions, inputExt) < 0)
         {
-            Console.Error.WriteLine($"Erreur: format non supporte ({inputExt}). Utiliser .doc ou .docx");
+            Console.Error.WriteLine($"Erreur: format non supporte (.{inputExt}). " +
+                                     $"Formats acceptes: .{string.Join(", .", InputExtensions)}");
             return 1;
         }
 
-        if (Path.GetExtension(output).ToLowerInvariant() != ".pdf")
+        string outputExt = Path.GetExtension(output).ToLowerInvariant().TrimStart('.');
+        if (Array.IndexOf(OutputExtensions, outputExt) < 0)
         {
-            Console.Error.WriteLine("Erreur: la sortie doit etre un .pdf");
+            Console.Error.WriteLine($"Erreur: sortie non supportee (.{outputExt}). " +
+                                     $"Formats acceptes: .{string.Join(", .", OutputExtensions)}");
             return 1;
         }
 
@@ -72,8 +95,8 @@ class Program
         // sur le reseau, et garantit qu'un plantage ne laisse rien sur le partage.
         string workDir     = Path.Combine(Path.GetTempPath(), $"x2t_convert_{Guid.NewGuid():N}");
         string tempDir     = Path.Combine(workDir, "temp");
-        string localInput  = Path.Combine(workDir, "input" + inputExt);
-        string localOutput = Path.Combine(workDir, "output.pdf");
+        string localInput  = Path.Combine(workDir, "input." + inputExt);
+        string localOutput = Path.Combine(workDir, "output." + outputExt);
         Directory.CreateDirectory(tempDir);
         string configPath = Path.Combine(workDir, "config.xml");
         try
@@ -115,7 +138,7 @@ class Program
 
             if (!File.Exists(localOutput))
             {
-                Console.Error.WriteLine("Erreur: conversion terminee mais PDF absent");
+                Console.Error.WriteLine("Erreur: conversion terminee mais fichier de sortie absent");
                 return 1;
             }
 
@@ -125,7 +148,7 @@ class Program
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Erreur: ecriture du PDF impossible ({output}): {ex.Message}");
+                Console.Error.WriteLine($"Erreur: ecriture du fichier de sortie impossible ({output}): {ex.Message}");
                 return 1;
             }
 

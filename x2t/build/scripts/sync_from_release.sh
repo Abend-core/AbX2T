@@ -77,6 +77,8 @@ sdkjs_files=(
   "slide/sdk-all.js"
   "cell/sdk-all-min.js"
   "cell/sdk-all.js"
+  "visio/sdk-all-min.js"
+  "visio/sdk-all.js"
   "pdf/src/engine/drawingfile_native.js"
   "pdf/src/engine/cmap.bin"
 )

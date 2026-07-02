@@ -42,29 +42,29 @@ source code, in accordance with AGPLv3 obligations (section 6, "Corresponding So
   contains [XRegExp](https://github.com/slevithan/xregexp) (MIT, Copyright (C) Steven
   Levithan).
 
-## ONLYOFFICE/core source subset (allfontgennew)
+## ONLYOFFICE/core source subset (allfontsgen)
 
 - **Publisher**: Ascensio System SIA — <https://www.onlyoffice.com>
 - **License**: [GNU AGPLv3](https://github.com/ONLYOFFICE/core/blob/master/LICENSE) (same
   license as this repository)
-- **What's bundled**: `allfontgennew/src/` is a vendored copy of a subset of the
+- **What's bundled**: `allfontsgen/src/` is a vendored copy of a subset of the
   [ONLYOFFICE/core](https://github.com/ONLYOFFICE/core) source tree (`Common/`,
   `DesktopEditor/`, `OdfFile/`, `UnicodeConverter/`), copied in verbatim by
-  `allfontgennew/build/scripts/sync_core.sh`. It is compiled locally into `allfontsgen`, a
+  `allfontsgen/build/scripts/sync_core.sh`. It is compiled locally into `allfontsgen`, a
   small tool used to index system fonts into `AllFonts.js`. Unlike x2t/sdkjs above, this
   source is committed directly in this repository (not just referenced), which is the
   simplest way to guarantee the Corresponding Source travels with the binary built from it.
-- **Modification**: at build time, `allfontgennew/build/scripts/prepare_generated_sources.sh`
+- **Modification**: at build time, `allfontsgen/build/scripts/prepare_generated_sources.sh`
   (macOS/Linux) and `build_windows.ps1` (Windows, inline) apply a small patch to one file,
   `DesktopEditor/fontengine/ApplicationFontsWorker.cpp`: they wrap the `SaveThumbnails`
   function body and its raster/graphics includes behind an
   `ALLFONTSGEN_DISABLE_THUMBNAILS` preprocessor guard, so `allfontsgen` can build without
   pulling in thumbnail-rendering dependencies it doesn't need. The patch is applied to a
-  generated copy under `allfontgennew/build/generated/` (not committed); the vendored copy
-  under `allfontgennew/src/` stays untouched. The exact patch is fully visible and
+  generated copy under `allfontsgen/build/generated/` (not committed); the vendored copy
+  under `allfontsgen/src/` stays untouched. The exact patch is fully visible and
   reproducible by reading those two scripts — no hidden or undocumented change.
 - **FreeType**: the vendored subset includes FreeType 2.10.4
-  (`allfontgennew/src/DesktopEditor/freetype-2.10.4/`), which is compiled into
+  (`allfontsgen/src/DesktopEditor/freetype-2.10.4/`), which is compiled into
   `allfontsgen` and used under the
   [FreeType License (FTL)](https://gitlab.freedesktop.org/freetype/freetype/-/blob/master/docs/FTL.TXT).
   As required by the FTL: *Portions of this software are copyright © The FreeType Project
@@ -100,6 +100,6 @@ components).
 ## AbX2T original code
 
 Everything else in this repository (the `Abx2t.exe` C# code, sync/build scripts,
-documentation) — i.e. everything outside `allfontgennew/src/`, `x2t/bin/`, `x2t/sdkjs/`, and
+documentation) — i.e. everything outside `allfontsgen/src/`, `x2t/bin/`, `x2t/sdkjs/`, and
 `x2t/dictionaries/` — is original work by Hugo Lagouardat (Abend-core), published under the
 same AGPLv3 license — see [LICENSE](LICENSE).

@@ -12,7 +12,7 @@ Ce qui manque et doit etre genere:
 
 - `x2t/bin/` — binaire x2t + frameworks (depuis une release officielle ONLYOFFICE)
 - `x2t/sdkjs/` — runtime JS minimal (depuis la meme release)
-- `allfontgennew/output/` — polices (genere par allfontsgen, compile depuis core-master)
+- `allfontsgen/output/` — polices (genere par allfontsgen, compile depuis core-master)
 
 ## Source externe a se procurer
 
@@ -40,20 +40,20 @@ Produit:
 ### 2. Compiler allfontsgen et generer les polices
 
 ```sh
-cd allfontgennew
+cd allfontsgen
 zsh build/scripts/build_macos.sh      # compile allfontsgen depuis core-master (necessite clang)
 zsh build/scripts/generate_macos.sh   # genere AllFonts.js depuis les polices systeme
 ```
 
-Produit: `allfontgennew/output/macos-arm64/fonts/AllFonts.js`
+Produit: `allfontsgen/output/macos-arm64/fonts/AllFonts.js`
 
-Voir [allfontgennew/README.md](../../allfontgennew/README.md) pour le detail de ce bundle
+Voir [allfontsgen/README.md](../../allfontsgen/README.md) pour le detail de ce bundle
 (il compile toujours depuis `core-master/`, contrairement a x2t).
 
 ### 3. Copier AllFonts.js dans x2t/sdkjs
 
 ```sh
-cp allfontgennew/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js
+cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js
 ```
 
 `sync_from_release.sh` preserve ce fichier lors des synchros suivantes s'il est deja present.

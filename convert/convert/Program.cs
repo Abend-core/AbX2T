@@ -173,9 +173,13 @@ available in the source repository.";
             };
 
             using var proc = Process.Start(psi)!;
-            string stdout = proc.StandardOutput.ReadToEnd();
-            string stderr = proc.StandardError.ReadToEnd();
+            // Drain both pipes concurrently: reading them one after the other can deadlock
+            // if x2t fills the buffer of the pipe not being read.
+            var stdoutTask = proc.StandardOutput.ReadToEndAsync();
+            var stderrTask = proc.StandardError.ReadToEndAsync();
             proc.WaitForExit();
+            string stdout = stdoutTask.Result;
+            string stderr = stderrTask.Result;
 
             if (proc.ExitCode != 0)
             {

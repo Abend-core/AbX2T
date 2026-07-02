@@ -60,7 +60,7 @@ cd x2t\bin\windows-x86_64
 ### macOS
 
 ```sh
-cd allfontgennew
+cd allfontsgen
 zsh build/scripts/generate_macos.sh
 cp output/macos-arm64/fonts/AllFonts.js ../x2t/sdkjs/common/AllFonts.js
 ```

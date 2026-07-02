@@ -8,9 +8,9 @@ polices (allfontsgen) sur Linux x86_64.
 ```
 workspace/
 |-- convert/          EXE de conversion de documents (Windows, distribue)
-|-- allfontgennew/    Generateur d index de polices AllFonts.js (compile depuis core-master ; macOS, Windows, Linux)
+|-- allfontsgen/    Generateur d index de polices AllFonts.js (compile depuis core-master ; macOS, Windows, Linux)
 |-- x2t/              Scripts et assets de conversion (macOS + sync Windows)
-|-- core-master/      Sources upstream ONLYOFFICE (gitignore, requis pour recompiler allfontgennew)
+|-- core-master/      Sources upstream ONLYOFFICE (gitignore, requis pour recompiler allfontsgen)
 ```
 
 ## Utilisation rapide (Windows)
@@ -48,7 +48,7 @@ Detail et etat des tests : [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPP
 | Composant | Depend de core-master ? | Notes |
 |---|---|---|
 | `Abx2t.exe` | Non | Code C# autonome, voir [convert/README.md](convert/README.md) |
-| `allfontsgen.exe` / `allfontsgen` | Oui | Sources dans `allfontgennew/src/` copiees depuis core-master (macOS, Windows, Linux) |
+| `allfontsgen.exe` / `allfontsgen` | Oui | Sources dans `allfontsgen/src/` copiees depuis core-master (macOS, Windows, Linux) |
 | `x2t.exe` | Non | Binaire pre-compile depuis ONLYOFFICE installe (macOS : release officielle : Windows : install locale) |
 
 ## Demarrage macOS
@@ -57,9 +57,9 @@ Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete.
 
 1. Se procurer une release officielle ONLYOFFICE (dossier `Resources/`)
 2. `zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources`
-3. Deposer `core-master/` a la racine, compiler allfontsgen : `cd allfontgennew && zsh build/scripts/build_macos.sh`
+3. Deposer `core-master/` a la racine, compiler allfontsgen : `cd allfontsgen && zsh build/scripts/build_macos.sh`
 4. Generer les polices : `zsh build/scripts/generate_macos.sh`
-5. `cp allfontgennew/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
+5. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
 6. Tester : `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
 
 ## Generation de polices sur Linux
@@ -68,7 +68,7 @@ Pas de pipeline de conversion x2t sur Linux (aucun binaire ONLYOFFICE Linux disp
 `allfontsgen` s'y compile et s'y execute :
 
 ```sh
-cd allfontgennew
+cd allfontsgen
 bash build/scripts/build_linux.sh
 bash build/scripts/generate_linux.sh
 ```
@@ -79,9 +79,9 @@ Produit `output/linux-x86_64/fonts/AllFonts.js`.
 
 - [convert/README.md](convert/README.md) : usage et architecture de `Abx2t.exe`
 - [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPPORTED_FORMATS.md) : formats acceptes, ce qui est teste
-- [allfontgennew/docs/INDEX.md](allfontgennew/docs/INDEX.md)
-- [allfontgennew/docs/USAGE.md](allfontgennew/docs/USAGE.md)
-- [allfontgennew/docs/MAINTENANCE.md](allfontgennew/docs/MAINTENANCE.md)
+- [allfontsgen/docs/INDEX.md](allfontsgen/docs/INDEX.md)
+- [allfontsgen/docs/USAGE.md](allfontsgen/docs/USAGE.md)
+- [allfontsgen/docs/MAINTENANCE.md](allfontsgen/docs/MAINTENANCE.md)
 - [x2t/docs/SETUP.md](x2t/docs/SETUP.md)
 - [x2t/docs/USAGE.md](x2t/docs/USAGE.md)
 - [x2t/docs/MAINTENANCE.md](x2t/docs/MAINTENANCE.md)

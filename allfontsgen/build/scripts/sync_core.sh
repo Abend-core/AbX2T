@@ -2,7 +2,7 @@
 # AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copies an unmodified subset of ONLYOFFICE/core source (Copyright (C) Ascensio System SIA,
-# AGPLv3) into allfontgennew/src/. See /THIRD-PARTY-NOTICES.md.
+# AGPLv3) into allfontsgen/src/. See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 
@@ -13,9 +13,9 @@ components=(Common DesktopEditor OdfFile UnicodeConverter)
 
 usage() {
   cat <<'EOF'
-Usage: zsh allfontgennew/build/scripts/sync_core.sh [--dry-run] [source_dir]
+Usage: zsh allfontsgen/build/scripts/sync_core.sh [--dry-run] [source_dir]
 
-Copies the upstream subset into allfontgennew/src/.
+Copies the upstream subset into allfontsgen/src/.
 Only replaces: Common, DesktopEditor, OdfFile, UnicodeConverter.
 
 - source_dir: defaults to core-master/, then core/, then corps/ at the workspace root.

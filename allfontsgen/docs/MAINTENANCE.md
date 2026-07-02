@@ -9,7 +9,7 @@ sans modifier `src/`, et valide sur macOS arm64, Windows x86_64 et Linux x86_64.
 
 ### 1. Sources copiees dans src/
 
-`allfontgennew/src/` contient un sous-ensemble copie depuis `core-master/` :
+`allfontsgen/src/` contient un sous-ensemble copie depuis `core-master/` :
 - `Common/`, `DesktopEditor/`, `OdfFile/`, `UnicodeConverter/`
 
 ### 2. Build pilote par des manifests hors src/
@@ -40,11 +40,11 @@ les includes raster/graphics non necessaires.
 
 ## Dependance a core-master
 
-`allfontgennew/src/` est une copie statique de core-master. Elle ne se met pas a jour
+`allfontsgen/src/` est une copie statique de core-master. Elle ne se met pas a jour
 automatiquement. Pour rafraichir depuis upstream :
 
 ```sh
-zsh allfontgennew/build/scripts/sync_core.sh
+zsh allfontsgen/build/scripts/sync_core.sh
 ```
 
 Puis recompiler et retester sur toutes les plateformes.

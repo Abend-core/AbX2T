@@ -31,7 +31,7 @@ x2t est assemble depuis une **installation ONLYOFFICE pre-compilee** (le binaire
 DLLs/frameworks ne sont jamais recompiles ici) : une release officielle sur macOS
 (`sync_from_release.sh`), une installation locale ONLYOFFICE Desktop Editors sur Windows
 (`sync_from_install_windows.ps1`). Seul `x2t/sdkjs/common/AllFonts.js` est genere localement,
-par `allfontgennew` (voir sa doc), a partir des polices installees sur le poste.
+par `allfontsgen` (voir sa doc), a partir des polices installees sur le poste.
 
 ## Demarrage rapide
 
@@ -40,8 +40,8 @@ Voir [docs/SETUP.md](docs/SETUP.md) pour la mise en place complete.
 En resume:
 1. Se procurer une release officielle ONLYOFFICE (ex: DesktopEditors.app) contenant `converter/` et `editors/`
 2. `zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources`
-3. Generer les polices: `cd allfontgennew && zsh build/scripts/generate_macos.sh`
-4. `cp allfontgennew/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
+3. Generer les polices: `cd allfontsgen && zsh build/scripts/generate_macos.sh`
+4. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
 5. `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
 
 Utiliser `convert.sh` plutot que d'appeler `x2t/bin/x2t` directement : x2t laisse par

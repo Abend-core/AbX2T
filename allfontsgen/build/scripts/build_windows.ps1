@@ -1,9 +1,9 @@
 # AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core)
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Compiles allfontsgen from a vendored subset of ONLYOFFICE/core source (Copyright (C)
-# Ascensio System SIA, AGPLv3, see allfontgennew/src/). This script applies a build-time patch
+# Ascensio System SIA, AGPLv3, see allfontsgen/src/). This script applies a build-time patch
 # to one source file (ApplicationFontsWorker.cpp, disables thumbnail generation) before
-# compiling; the vendored copy under allfontgennew/src/ is left untouched. See
+# compiling; the vendored copy under allfontsgen/src/ is left untouched. See
 # /THIRD-PARTY-NOTICES.md.
 #Requires -Version 5.1
 $ErrorActionPreference = 'Stop'

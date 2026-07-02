@@ -1,8 +1,8 @@
-# allfontgennew Documentation Index
+# allfontsgen Documentation Index
 
 ## Goal
 
-`allfontgennew` is a standalone AllFonts generator bundle built from copied upstream ONLYOFFICE sources stored in `core-master`.
+`allfontsgen` is a standalone AllFonts generator bundle built from copied upstream ONLYOFFICE sources stored in `core-master`.
 
 The target outcome is reproducible generation of:
 

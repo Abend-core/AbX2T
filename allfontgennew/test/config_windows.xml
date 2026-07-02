@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<TaskQueueDataConvert>
-    <m_sFileFrom>D:\abX2T\allfontgennew\test\Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.docx</m_sFileFrom>
-    <m_sFileTo>D:\abX2T\allfontgennew\test\Rapport-alternance-LGI-Hugo-Lagouardat-Massirolles.pdf</m_sFileTo>
-    <m_sAllFontsPath>D:\abX2T\allfontgennew\output\windows-x86_64\fonts\AllFonts.js</m_sAllFontsPath>
-    <m_sFontDir>D:\abX2T\allfontgennew\output\windows-x86_64\fonts</m_sFontDir>
-    <m_sThemeDir>D:\abX2T\x2t\sdkjs</m_sThemeDir>
-</TaskQueueDataConvert>

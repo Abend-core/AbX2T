@@ -12,7 +12,7 @@ Gathers x2t.exe + all DLLs (x2t.exe statically imports them at startup, none can
 removed without recompiling) + the full x2t/sdkjs/ tree (common, word, cell, slide, visio,
 pdf, vendor) + x2t/dictionaries/ (from x2t/bin/windows-x86_64/ and x2t/sdkjs/, populated by
 x2t/build/scripts/sync_from_install_windows.ps1) and allfontsgen.exe (from
-allfontgennew/build/bin/windows-x86_64/, compiled by allfontgennew/build/scripts/build_windows.ps1
+allfontsgen/build/bin/windows-x86_64/, compiled by allfontsgen/build/scripts/build_windows.ps1
 if missing) into convert/convert/assets.zip. This zip is automatically extracted by Abx2t.exe
 into a resources/ folder on first run (see convert/convert/Program.cs).
 
@@ -31,7 +31,7 @@ $repo        = (Resolve-Path (Join-Path $convertRoot '..')).Path
 $x2tBin       = Join-Path $repo 'x2t\bin\windows-x86_64'
 $sdkjsSrc     = Join-Path $repo 'x2t\sdkjs'
 $dictSrc      = Join-Path $repo 'x2t\dictionaries'
-$allfontsgen  = Join-Path $repo 'allfontgennew\build\bin\windows-x86_64\allfontsgen.exe'
+$allfontsgen  = Join-Path $repo 'allfontsgen\build\bin\windows-x86_64\allfontsgen.exe'
 $assetsZip    = Join-Path $convertRoot 'convert\assets.zip'
 
 if (-not (Test-Path (Join-Path $x2tBin 'x2t.exe'))) {
@@ -46,7 +46,7 @@ if (-not (Test-Path $dictSrc)) {
 
 if (-not (Test-Path $allfontsgen)) {
     Write-Host "allfontsgen.exe not found -- compiling..."
-    & powershell -ExecutionPolicy Bypass -File (Join-Path $repo 'allfontgennew\build\scripts\build_windows.ps1')
+    & powershell -ExecutionPolicy Bypass -File (Join-Path $repo 'allfontsgen\build\scripts\build_windows.ps1')
     if (-not (Test-Path $allfontsgen)) {
         Write-Error "Failed to compile allfontsgen.exe"
     }

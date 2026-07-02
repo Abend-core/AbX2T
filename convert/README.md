@@ -73,6 +73,6 @@ dotnet publish convert\convert.csproj -c Release
   (`win-x64`).
 - `convert/build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
   (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) + `x2t/dictionaries/` +
-  `allfontgennew/build/bin/windows-x86_64/allfontsgen.exe` + les textes de licence (`LICENSE`,
+  `allfontsgen/build/bin/windows-x86_64/allfontsgen.exe` + les textes de licence (`LICENSE`,
   `THIRD-PARTY-NOTICES.md`), extraits dans `resources\` au premier lancement pour que la
   distribution mono-exe reste autonome juridiquement.

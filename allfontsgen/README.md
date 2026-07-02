@@ -1,8 +1,6 @@
-# allfontgennew
+# allfontsgen
 
 Standalone AllFonts bundle rebuilt from upstream ONLYOFFICE sources copied from `core-master`.
-
-This bundle is the current reference. `oldmodifysources` is no longer needed.
 
 ## Rules
 
@@ -13,31 +11,32 @@ This bundle is the current reference. `oldmodifysources` is no longer needed.
 
 ## Quick Start
 
-Build the macOS binary:
+Build the macOS binary (from the repository root):
 
 ```sh
-cd /Users/hlm/Desktop/AbX2T/allfontgennew
+cd allfontsgen
 zsh build/scripts/build_macos.sh
 ```
 
 Generate the AllFonts bundle:
 
 ```sh
-cd /Users/hlm/Desktop/AbX2T/allfontgennew
+cd allfontsgen
 zsh build/scripts/generate_macos.sh
 ```
 
-Run the validated x2t conversion test:
+Run the x2t conversion test (from the `converter/` directory of an ONLYOFFICE release; adjust
+the absolute paths inside `test/config_mac.xml` to your machine first):
 
 ```sh
-cd /Users/hlm/Downloads/Resources/converter
-./x2t "/Users/hlm/Desktop/AbX2T/allfontgennew/test/config_mac.xml"
+cd /path/to/onlyoffice/Resources/converter
+./x2t "/path/to/AbX2T/allfontsgen/test/config_mac.xml"
 ```
 
 On Linux (tested via WSL Ubuntu):
 
 ```sh
-cd allfontgennew
+cd allfontsgen
 bash build/scripts/build_linux.sh
 bash build/scripts/generate_linux.sh
 ```

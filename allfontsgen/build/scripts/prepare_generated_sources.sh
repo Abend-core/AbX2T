@@ -5,7 +5,7 @@
 # SIA, AGPLv3): ApplicationFontsWorker.cpp, guards thumbnail generation behind
 # ALLFONTSGEN_DISABLE_THUMBNAILS so allfontsgen can build without the raster/graphics deps it
 # doesn't need. Output goes to build/generated/ (not committed); the vendored copy under
-# allfontgennew/src/ is left untouched. See /THIRD-PARTY-NOTICES.md.
+# allfontsgen/src/ is left untouched. See /THIRD-PARTY-NOTICES.md.
 
 set -euo pipefail
 

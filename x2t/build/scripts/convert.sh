@@ -30,7 +30,7 @@ pre-compiled binary).
 By providing an explicit m_sTempDir, x2t delegates cleanup to the caller:
 this script guarantees the temp directory is removed, on success or failure.
 
-fontdir: fonts directory (default: allfontgennew/output/macos-arm64/fonts)
+fontdir: fonts directory (default: allfontsgen/output/macos-arm64/fonts)
 EOF
 }
 
@@ -42,7 +42,7 @@ fi
 
 file_from=$1
 file_to=$2
-font_dir=${3:-"$workspace_root/allfontgennew/output/macos-arm64/fonts"}
+font_dir=${3:-"$workspace_root/allfontsgen/output/macos-arm64/fonts"}
 
 x2t_bin="$bundle_root/bin/x2t"
 all_fonts="$bundle_root/sdkjs/common/AllFonts.js"

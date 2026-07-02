@@ -21,7 +21,7 @@
 ### macOS arm64
 
 ```sh
-cd allfontgennew
+cd allfontsgen
 zsh build/scripts/build_macos.sh
 ```
 
@@ -30,7 +30,7 @@ Produit : `build/bin/macos-arm64/allfontsgen`
 ### Windows x86_64
 
 ```powershell
-cd allfontgennew
+cd allfontsgen
 powershell -ExecutionPolicy Bypass -File build\scripts\build_windows.ps1
 ```
 
@@ -39,7 +39,7 @@ Produit : `build\bin\windows-x86_64\allfontsgen.exe`
 ### Linux x86_64
 
 ```sh
-cd allfontgennew
+cd allfontsgen
 bash build/scripts/build_linux.sh
 ```
 
@@ -80,14 +80,14 @@ Produit dans `output/linux-x86_64/fonts/`.
 ### macOS arm64
 
 ```sh
-x2t/bin/x2t "$(pwd)/allfontgennew/test/config_mac.xml"
+x2t/bin/x2t "$(pwd)/allfontsgen/test/config_mac.xml"
 ```
 
 ### Windows x86_64
 
 ```powershell
 cd x2t\bin\windows-x86_64
-.\x2t.exe "D:\abX2T\allfontgennew\test\config_windows.xml"
+.\x2t.exe "D:\abX2T\allfontsgen\test\config_windows.xml"
 ```
 
 Ou via Abx2t.exe (recommande) :

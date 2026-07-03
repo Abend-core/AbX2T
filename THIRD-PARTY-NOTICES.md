@@ -18,12 +18,16 @@ source code, in accordance with AGPLv3 obligations (section 6, "Corresponding So
     public source tree — no proprietary or undocumented "black box" component.
   - `x2t/bin/macos-arm64/`: the same `x2t` binary and its `.framework` bundles, macOS build of
     the same conversion engine, sourced from an official ONLYOFFICE Desktop Editors release.
+  - `x2t/bin/linux-x86_64/`: the same `x2t` binary, its `.so` libraries and ICU data files,
+    Linux build of the same conversion engine, sourced from the official ONLYOFFICE Desktop
+    Editors Debian package (`onlyoffice-desktopeditors_9.4.0_amd64.deb`, from
+    <https://download.onlyoffice.com/repo/debian/>).
   - `x2t/sdkjs/`: JavaScript runtime (word/cell/slide/visio/pdf/common) of the same SDK.
     `x2t/sdkjs/common/AllFonts.js` is not upstream code: it is a font index generated locally
     on each machine by `allfontsgen`.
 - **Provenance**: components are taken as-is from an official ONLYOFFICE Desktop Editors
-  installation (see `x2t/build/scripts/sync_from_install_windows.ps1` and
-  `sync_from_release.sh`). **No modification** is made to these binaries or JS files: AbX2T
+  installation or release package (see `x2t/build/scripts/sync_from_install_windows.ps1`,
+  `sync_from_release.sh` and `sync_from_release_linux.sh`). **No modification** is made to these binaries or JS files: AbX2T
   only packages them and invokes them as a subprocess from its own code
   (`convert/convert/Program.cs`).
 - **Corresponding source** (exact version match): ONLYOFFICE publishes the source for this

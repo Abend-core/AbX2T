@@ -1,0 +1,40 @@
+# Line endings.
+#
+# This working tree is shared between Windows, WSL and macOS: without explicit
+# rules, each git applies its own autocrlf policy and `git status` fills up with
+# phantom whole-file CRLF diffs. Rule: every text file is stored AND checked out
+# with LF, on every OS (editors, dotnet, bash/zsh and PowerShell 7 all handle LF).
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF (cmd.exe requires it; safest for PowerShell 5.1)
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Vendored ONLYOFFICE payloads: never inspect or convert. Critical for
+# x2t/bin/macos-arm64/: the .framework Info.plist/_CodeSignature files are
+# covered by the code signature -- byte-level changes would break codesign.
+x2t/bin/** -text
+
+# Binary formats (belt and braces on top of text=auto detection)
+*.dll binary
+*.exe binary
+*.so binary
+*.so.* binary
+*.dylib binary
+*.zip binary
+*.dat binary
+*.bin binary
+*.wasm binary
+*.cache binary
+*.ttf binary
+*.otf binary
+*.ttc binary
+*.ico binary
+*.icns binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.pptx binary

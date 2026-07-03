@@ -5,7 +5,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>Abx2t</AssemblyName>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Default RID follows the build host (AOT does not cross-compile anyway);
+         override with -r if needed (e.g. -r osx-x64 on an Intel Mac). -->
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx-arm64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <!-- Native AOT: single native exe, no bundled .NET runtime (~5-8 MB of wrapper instead
          of ~73 MB). Requires publishing on the target OS (no AOT cross-compilation):

@@ -75,3 +75,30 @@ Produit: `x2t/test/*.pdf`
 
 Voir [MAINTENANCE.md](MAINTENANCE.md) : `sync_from_install_windows.ps1` peuple `x2t/bin/windows-x86_64/`
 et `x2t/sdkjs/` depuis une installation locale ONLYOFFICE Desktop Editors.
+
+## Linux
+
+Meme demarche que macOS, depuis le paquet .deb officiel (pas besoin de l'installer —
+le script sait l'extraire avec `dpkg-deb`) :
+
+```sh
+# .deb officiel, version alignee sur le bundle (ici 9.4.0) :
+# https://download.onlyoffice.com/repo/debian/pool/main/o/onlyoffice-desktopeditors/
+bash x2t/build/scripts/sync_from_release_linux.sh --dry-run /chemin/vers/onlyoffice-desktopeditors_9.4.0_amd64.deb
+bash x2t/build/scripts/sync_from_release_linux.sh /chemin/vers/onlyoffice-desktopeditors_9.4.0_amd64.deb
+```
+
+Produit :
+- `x2t/bin/linux-x86_64/` (~162 Mo — binaire x2t, .so, icudtl*.dat, DoctRenderer.config)
+- `x2t/sdkjs/` (~51 Mo — identique aux autres plateformes a version egale)
+
+Accepte aussi un dossier deja installe/extrait (`/opt/onlyoffice/desktopeditors`).
+
+Puis polices et test :
+
+```sh
+cd allfontsgen && bash build/scripts/build_linux.sh && bash build/scripts/generate_linux.sh && cd ..
+cp allfontsgen/output/linux-x86_64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js
+```
+
+Prerequis : `gcc`/`g++`, `bash`, `python3` (packaging), `dpkg-deb` (extraction du .deb).

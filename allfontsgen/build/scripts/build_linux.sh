@@ -72,6 +72,8 @@ for source in "${sources[@]}"; do
   objects+=("$object")
 done
 
-g++ "${objects[@]}" -lpthread -ldl -o "$binary"
+# libstdc++/libgcc linked statically: the binary then only needs glibc, like the
+# prebuilt ONLYOFFICE x2t -- it runs on any glibc distro and in distroless images.
+g++ "${objects[@]}" -static-libstdc++ -static-libgcc -lpthread -ldl -o "$binary"
 
 echo "$binary"

@@ -1,15 +1,14 @@
 # AbX2T Workspace
 
-Toolkit de conversion de documents autonome sur Windows x86_64, macOS arm64, et generation de
-polices (allfontsgen) sur Linux x86_64.
+Toolkit de conversion de documents autonome sur Windows x86_64, macOS arm64 et Linux x86_64.
 
 ## Bundles
 
 ```
 workspace/
-|-- convert/          EXE de conversion de documents (Windows + macOS, distribue)
+|-- convert/          EXE de conversion de documents (Windows + macOS + Linux, distribue)
 |-- allfontsgen/    Generateur d index de polices AllFonts.js (compile depuis core-master ; macOS, Windows, Linux)
-|-- x2t/              Scripts et assets de conversion (macOS + sync Windows)
+|-- x2t/              Scripts et assets de conversion (sync macOS + Windows + Linux)
 |-- core-master/      Sources upstream ONLYOFFICE (gitignore, requis pour recompiler allfontsgen)
 ```
 
@@ -20,6 +19,8 @@ Dezipper l'archive, elle ne contient qu'un seul fichier : `Abx2t.exe`.
 ```powershell
 .\Abx2t.exe "rapport.docx" "rapport.pdf"
 ```
+
+(Sur macOS/Linux, meme principe avec l'exe `Abx2t` : `./Abx2t rapport.docx rapport.pdf`.)
 
 Au tout premier lancement, l'exe s'auto-installe (extraction des composants dans `resources\`,
 generation des polices systeme dans `allfonts\`) : aucune etape manuelle requise. Un dossier
@@ -39,8 +40,8 @@ Detail et etat des tests : [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPP
 
 - `Abx2t` appelle `x2t` en coulisse via un XML de config temporaire, en local (TEMP
   systeme) meme si la source/destination reelle est sur un partage reseau.
-- `x2t` et ses DLLs (Windows) ou frameworks (macOS) viennent d'une installation ONLYOFFICE
-  Desktop locale ou d'une release officielle, selon l'OS (voir tableau ci-dessous).
+- `x2t` et ses DLLs (Windows), frameworks (macOS) ou `.so` (Linux) viennent d'une installation
+  ONLYOFFICE Desktop locale ou d'une release officielle, selon l'OS (voir tableau ci-dessous).
 - `AllFonts.js` est genere par `allfontsgen` depuis les polices systeme du PC et le dossier
   `custom-fonts\`, au premier lancement de `Abx2t` (et regenere si `custom-fonts\` change).
 
@@ -50,7 +51,7 @@ Detail et etat des tests : [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPP
 |---|---|---|
 | `Abx2t.exe` | Non | Code C# autonome, voir [convert/README.md](convert/README.md) |
 | `allfontsgen.exe` / `allfontsgen` | Oui | Sources dans `allfontsgen/src/` copiees depuis core-master (macOS, Windows, Linux) |
-| `x2t.exe` | Non | Binaire pre-compile depuis ONLYOFFICE installe (macOS : release officielle : Windows : install locale) |
+| `x2t.exe` / `x2t` | Non | Binaire pre-compile depuis ONLYOFFICE (macOS : release officielle ; Windows : install locale ; Linux : .deb officiel) |
 
 ## Demarrage macOS
 
@@ -68,18 +69,22 @@ Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete d
    `dotnet publish convert/convert/convert.csproj -c Release -r osx-arm64` (voir
    [convert/README.md](convert/README.md) pour le detail NativeAOT).
 
-## Generation de polices sur Linux
+## Demarrage Linux
 
-Pas de pipeline de conversion x2t sur Linux (aucun binaire ONLYOFFICE Linux disponible), mais
-`allfontsgen` s'y compile et s'y execute :
+Meme pipeline que Windows/macOS : les binaires x2t Linux viennent du `.deb` officiel
+ONLYOFFICE Desktop Editors (l'exe final `Abx2t` ne depend que de la glibc — il tourne sur
+n'importe quelle distro et dans une image conteneur distroless, voir
+[convert/README.md](convert/README.md#linux)).
 
-```sh
-cd allfontsgen
-bash build/scripts/build_linux.sh
-bash build/scripts/generate_linux.sh
-```
-
-Produit `output/linux-x86_64/fonts/AllFonts.js`.
+1. Telecharger le `.deb` officiel (version alignee sur le bundle, ici 9.4.0) :
+   `https://download.onlyoffice.com/repo/debian/pool/main/o/onlyoffice-desktopeditors/onlyoffice-desktopeditors_9.4.0_amd64.deb`
+2. `bash x2t/build/scripts/sync_from_release_linux.sh /chemin/vers/le.deb`
+3. Compiler allfontsgen : `cd allfontsgen && bash build/scripts/build_linux.sh`
+4. Generer les polices : `bash build/scripts/generate_linux.sh` puis
+   `cp allfontsgen/output/linux-x86_64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
+5. Builder l'exe `Abx2t` distribuable : `bash convert/build/package_linux.sh` puis
+   `dotnet publish convert/convert/convert.csproj -c Release -r linux-x64` (voir
+   [convert/README.md](convert/README.md) pour le detail NativeAOT).
 
 ## Documentation
 

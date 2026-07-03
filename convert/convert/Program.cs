@@ -237,6 +237,20 @@ available in the source repository.";
             Directory.CreateDirectory(destDir);
             using var archive = new ZipArchive(zip, ZipArchiveMode.Read);
             archive.ExtractToDirectory(destDir, overwriteFiles: true);
+
+            // On Linux, make sure the bundled binaries stay executable even if the archive
+            // was built without Unix permissions in its entries (x2t finds its .so libraries
+            // next to itself via its RPATH $ORIGIN, so the exec bit is all it needs).
+            if (OperatingSystem.IsLinux())
+            {
+                foreach (string bin in new[] { "x2t", "allfontsgen" })
+                {
+                    string path = Path.Combine(destDir, bin);
+                    if (File.Exists(path))
+                        File.SetUnixFileMode(path, File.GetUnixFileMode(path)
+                            | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+                }
+            }
             return 0;
         }
         catch (Exception ex)

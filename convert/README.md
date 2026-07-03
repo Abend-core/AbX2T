@@ -1,6 +1,6 @@
 # convert
 
-Wrapper Windows autonome (`Abx2t.exe`) pour convertir des documents via `x2t.exe` (ONLYOFFICE).
+Wrapper autonome (`Abx2t`) pour convertir des documents via `x2t` (ONLYOFFICE), Windows et macOS.
 Formats acceptes en entree/sortie : voir [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md).
 
 ## Usage
@@ -57,6 +57,8 @@ de l'exe ni du fichier de sortie.
 `assets.zip` (`convert/convert/assets.zip`, ressource embarquee par `convert.csproj`) n'est pas
 versionne. Pour le reconstruire :
 
+### Windows
+
 ```powershell
 # 1. Recuperer x2t.exe + DLLs + sdkjs depuis une install ONLYOFFICE Desktop locale
 powershell -ExecutionPolicy Bypass -File ..\x2t\build\scripts\sync_from_install_windows.ps1
@@ -68,9 +70,23 @@ powershell -ExecutionPolicy Bypass -File build\package_windows.ps1
 dotnet publish convert\convert.csproj -c Release
 ```
 
+### macOS
+
+```sh
+# 1. Recuperer x2t + frameworks + sdkjs depuis une release officielle ONLYOFFICE
+zsh ../x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources
+
+# 2. Assembler assets.zip (compile allfontsgen si absent ; utilise ditto pour preserver
+#    les symlinks des .framework -- voir Architecture ci-dessous)
+zsh build/package_macos.sh
+
+# 3. Builder Abx2t (NativeAOT osx-arm64)
+dotnet publish convert/convert.csproj -c Release -r osx-arm64
+```
+
 ### Build NativeAOT
 
-Le publish compile en natif (NativeAOT) : exe ~62 Mo au lieu de ~133 Mo, demarrage instantane.
+Le publish compile en natif (NativeAOT) : exe ~58 Mo au lieu de ~133 Mo, demarrage instantane.
 L'AOT ne cross-compile pas : publier **sur l'OS cible**, avec sa toolchain native installee
 (MSVC sur Windows, Xcode CLT sur macOS, clang/gcc sur Linux).
 
@@ -91,12 +107,17 @@ dotnet publish convert\convert.csproj -c Release -p:PublishAot=false
 
 ## Architecture
 
-- `convert/convert/Program.cs` : logique C# (validation des formats, extraction, generation des
-  polices, appel x2t.exe, staging reseau).
+- `convert/convert/Program.cs` : logique C# cross-plateforme (validation des formats,
+  extraction, generation des polices, appel x2t, staging reseau). Detection d'OS pour le nom
+  des binaires (`x2t`/`x2t.exe`, `allfontsgen`/`allfontsgen.exe`). Sur macOS, extraction de
+  `assets.zip` via `ditto` plutot que `System.IO.Compression.ZipArchive`, qui ne restaure pas
+  les symlinks des `.framework` (`Versions/Current -> A`) et casserait leur resolution par dyld.
 - `convert/convert/convert.csproj` : `AssemblyName` = `Abx2t`, publish NativeAOT (exe natif
   unique, `win-x64` par defaut, `-r osx-arm64`/`linux-x64` sur les autres OS).
 - `convert/build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
   (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) +
   `allfontsgen/build/bin/windows-x86_64/allfontsgen.exe` + les textes de licence (`LICENSE`,
   `THIRD-PARTY-NOTICES.md`), extraits dans `resources\` au premier lancement pour que la
-  distribution mono-exe reste autonome juridiquement.
+  distribution mono-exe reste autonome juridiquement. `convert/build/package_macos.sh` est
+  l'equivalent macOS (`x2t/bin/macos-arm64/`, `allfontsgen/build/bin/macos-arm64/`), assemble
+  avec `ditto` (pas `zip`) pour preserver les symlinks des `.framework` a travers l'archive.

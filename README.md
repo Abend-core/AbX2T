@@ -7,7 +7,7 @@ polices (allfontsgen) sur Linux x86_64.
 
 ```
 workspace/
-|-- convert/          EXE de conversion de documents (Windows, distribue)
+|-- convert/          EXE de conversion de documents (Windows + macOS, distribue)
 |-- allfontsgen/    Generateur d index de polices AllFonts.js (compile depuis core-master ; macOS, Windows, Linux)
 |-- x2t/              Scripts et assets de conversion (macOS + sync Windows)
 |-- core-master/      Sources upstream ONLYOFFICE (gitignore, requis pour recompiler allfontsgen)
@@ -37,11 +37,12 @@ Detail et etat des tests : [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPP
 
 ## Architecture
 
-- `Abx2t.exe` appelle `x2t.exe` en coulisse via un XML de config temporaire, en local (TEMP
+- `Abx2t` appelle `x2t` en coulisse via un XML de config temporaire, en local (TEMP
   systeme) meme si la source/destination reelle est sur un partage reseau.
-- `x2t.exe` et ses DLLs viennent de l'installation ONLYOFFICE Desktop.
-- `AllFonts.js` est genere par `allfontsgen.exe` depuis les polices systeme du PC et le dossier
-  `custom-fonts\`, au premier lancement de `Abx2t.exe` (et regenere si `custom-fonts\` change).
+- `x2t` et ses DLLs (Windows) ou frameworks (macOS) viennent d'une installation ONLYOFFICE
+  Desktop locale ou d'une release officielle, selon l'OS (voir tableau ci-dessous).
+- `AllFonts.js` est genere par `allfontsgen` depuis les polices systeme du PC et le dossier
+  `custom-fonts\`, au premier lancement de `Abx2t` (et regenere si `custom-fonts\` change).
 
 ## Dependances a la compilation
 
@@ -53,14 +54,19 @@ Detail et etat des tests : [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPP
 
 ## Demarrage macOS
 
-Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete.
+Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete des composants
+(x2t, sdkjs, polices), et **[convert/README.md](convert/README.md#macos)** pour builder
+`Abx2t` lui-meme.
 
 1. Se procurer une release officielle ONLYOFFICE (dossier `Resources/`)
 2. `zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources`
 3. Deposer `core-master/` a la racine, compiler allfontsgen : `cd allfontsgen && zsh build/scripts/build_macos.sh`
 4. Generer les polices : `zsh build/scripts/generate_macos.sh`
 5. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
-6. Tester : `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
+6. Tester le moteur seul : `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
+7. Builder l'exe `Abx2t` distribuable : `zsh convert/build/package_macos.sh` puis
+   `dotnet publish convert/convert/convert.csproj -c Release -r osx-arm64` (voir
+   [convert/README.md](convert/README.md) pour le detail NativeAOT).
 
 ## Generation de polices sur Linux
 

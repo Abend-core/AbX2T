@@ -104,11 +104,20 @@ L'exe produit ne depend que de la glibc : x2t resout ses `.so` via son RPATH `$O
 (elles sont extraites a cote de lui dans `resources/`), allfontsgen est lie avec
 `-static-libstdc++`, et l'exe NativeAOT n'a besoin ni de libstdc++ ni d'ICU
 (`InvariantGlobalization`). Le bundle tourne donc sur n'importe quelle distro glibc et dans
-une image conteneur **distroless** (ex. `gcr.io/distroless/base-debian13` — pas besoin de
-`/cc`, aucune libstdc++ requise ; prevoir un volume ou WORKDIR inscriptible a cote de l'exe
-pour `resources/` et `allfonts/`). Seuil glibc = celle de la machine de build : publier sur
-la distro la plus ancienne a supporter. En conteneur sans police systeme, deposer au moins
-une police dans `custom-fonts/`.
+une image conteneur **distroless** (pas besoin de `/bin/sh`, aucune libstdc++ requise ;
+prevoir un volume ou WORKDIR inscriptible a cote de l'exe pour `resources/` et `allfonts/`).
+En conteneur sans police systeme, deposer au moins une police dans `custom-fonts/`.
+
+Plancher glibc mesure (publish depuis un conteneur `mcr.microsoft.com/dotnet/sdk:10.0`,
+Ubuntu 24.04) :
+- `x2t` (binaire ONLYOFFICE precompile) : glibc **2.14**
+- `allfontsgen` (compile ici, lie avec `-static-libstdc++`) : glibc **2.14**
+- `Abx2t` (runtime NativeAOT .NET 10) : glibc **2.34** -- c'est le plancher reel du bundle,
+  impose par le runtime .NET lui-meme (identique quel que soit l'OS de build, meme sur un
+  conteneur tres recent). Couvre Ubuntu 22.04+, Debian 12+, RHEL 9+, et les images
+  distroless actuelles -- teste avec succes sur `debian:12-slim` et
+  `gcr.io/distroless/base-debian12`. En dessous (Debian 11/Ubuntu 20.04 et plus vieux),
+  seul un fallback JIT (`-p:PublishAot=false`, ~97 Mo, necessite le runtime .NET) fonctionne.
 
 ### Build NativeAOT
 

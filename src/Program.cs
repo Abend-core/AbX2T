@@ -55,7 +55,7 @@ Full details: THIRD-PARTY-NOTICES.md and LICENSE, extracted to resources/ on fir
 available in the source repository.";
 
     // Formats read by ONLYOFFICE in this bundle (word/cell/slide/visio/pdf + x2t/bin DLLs, see
-    // docs/SUPPORTED_FORMATS.md). Written formats: subset actually writable
+    // docs/02-utilisation.md). Written formats: subset actually writable
     // (legacy binary and e-book/scan formats are read but never written back by ONLYOFFICE).
     static readonly string[] InputExtensions = {
         "doc","docx","docm","dotx","dotm","odt","ott","rtf","txt","html","mht","epub","fb2","mobi","hwp","hwpx","md",

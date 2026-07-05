@@ -30,3 +30,6 @@
 # x2t : binaires et JS ONLYOFFICE re-telechargeables (build/fetch_onlyoffice_*)
 /x2t/bin/
 /x2t/sdkjs/
+
+# PDF generes de la documentation
+/docs/PDF/

@@ -1,120 +1,58 @@
-# AbX2T Workspace
+# AbX2T
 
-Toolkit de conversion de documents autonome sur Windows x86_64, macOS arm64 et Linux x86_64.
-
-## Bundles
+Convertisseur de documents en ligne de commande, autonome, en **un seul exécutable** —
+basé sur le moteur de conversion ONLYOFFICE (x2t). Windows x86_64, macOS arm64,
+Linux x86_64 (y compris conteneurs distroless).
 
 ```
-workspace/
-|-- convert/          EXE de conversion de documents (Windows + macOS + Linux, distribue)
-|-- allfontsgen/    Generateur d index de polices AllFonts.js (compile depuis core-master ; macOS, Windows, Linux)
-|-- x2t/              Scripts et assets de conversion (sync macOS + Windows + Linux)
-|-- core-master/      Sources upstream ONLYOFFICE (gitignore, requis pour recompiler allfontsgen)
+Abx2t rapport.docx rapport.pdf
 ```
 
-## Utilisation rapide (Windows)
-
-Dezipper l'archive, elle ne contient qu'un seul fichier : `Abx2t.exe`.
-
-```powershell
-.\Abx2t.exe "rapport.docx" "rapport.pdf"
-```
-
-(Sur macOS/Linux, meme principe avec l'exe `Abx2t` : `./Abx2t rapport.docx rapport.pdf`.)
-
-Au tout premier lancement, l'exe s'auto-installe (extraction des composants dans `resources\`,
-generation des polices systeme dans `allfonts\`) : aucune etape manuelle requise. Un dossier
-`custom-fonts\` est aussi cree pour deposer des polices supplementaires sans les installer sur
-le poste (voir [src/README.md](src/README.md) pour le detail).
-
-## Formats supportes
-
-Detail et etat des tests : [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md).
-
-- Entree : tous les formats lus par ONLYOFFICE (word/cell/slide/visio/pdf -- docx, doc, odt, xlsx,
-  xls, ods, pptx, ppt, odp, pdf, html, rtf, txt, epub, vsdx, etc.)
-- Sortie : docx, odt, rtf, txt, html, pdf, pptx, odp, xlsx, ods, csv, xps
-- Source et destination peuvent etre des chemins reseau (`\\serveur\partage`, lecteur mappe).
-
-## Architecture
-
-- `Abx2t` appelle `x2t` en coulisse via un XML de config temporaire, en local (TEMP
-  systeme) meme si la source/destination reelle est sur un partage reseau.
-- `x2t` et ses DLLs (Windows), frameworks (macOS) ou `.so` (Linux) viennent d'une installation
-  ONLYOFFICE Desktop locale ou d'une release officielle, selon l'OS (voir tableau ci-dessous).
-- `AllFonts.js` est genere par `allfontsgen` depuis les polices systeme du PC et le dossier
-  `custom-fonts\`, au premier lancement de `Abx2t` (et regenere si `custom-fonts\` change).
-
-## Dependances a la compilation
-
-| Composant | Depend de core-master ? | Notes |
-|---|---|---|
-| `Abx2t.exe` | Non | Code C# autonome, voir [src/README.md](src/README.md) |
-| `allfontsgen.exe` / `allfontsgen` | Oui | Sources dans `allfontsgen/src/` copiees depuis core-master (macOS, Windows, Linux) |
-| `x2t.exe` / `x2t` | Non | Binaire pre-compile depuis ONLYOFFICE (macOS : release officielle ; Windows : install locale ; Linux : .deb officiel) |
-
-## Demarrage macOS
-
-Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete des composants
-(x2t, sdkjs, polices), et **[src/README.md](src/README.md#macos)** pour builder
-`Abx2t` lui-meme.
-
-1. Recuperer les binaires ONLYOFFICE (version epinglee dans `VERSIONS`, hash verifie) :
-   `zsh build/fetch_onlyoffice_macos.sh`
-   (fallback manuel : `zsh x2t/build/scripts/sync_from_release_macos.sh /chemin/vers/Resources`)
-2. Deposer `core-master/` a la racine, compiler allfontsgen : `cd allfontsgen && zsh build/scripts/build_macos.sh`
-3. Generer les polices : `zsh build/scripts/generate_macos.sh`
-4. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
-5. Tester le moteur seul : `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
-6. Builder l'exe `Abx2t` distribuable : `zsh build/package_macos.sh` puis
-   `dotnet publish src/Abx2t.csproj -c Release -r osx-arm64` (voir
-   [src/README.md](src/README.md) pour le detail NativeAOT).
-
-## Demarrage Linux
-
-Meme pipeline que Windows/macOS : les binaires x2t Linux viennent du `.deb` officiel
-ONLYOFFICE Desktop Editors (l'exe final `Abx2t` ne depend que de la glibc — il tourne sur
-n'importe quelle distro et dans une image conteneur distroless, voir
-[src/README.md](src/README.md#linux)).
-
-1. Recuperer les binaires ONLYOFFICE (version epinglee dans `VERSIONS`, hash verifie) :
-   `bash build/fetch_onlyoffice_linux.sh`
-   (fallback manuel : `bash x2t/build/scripts/sync_from_release_linux.sh /chemin/vers/le.deb`)
-2. Compiler allfontsgen : `cd allfontsgen && bash build/scripts/build_linux.sh`
-3. Generer les polices : `bash build/scripts/generate_linux.sh` puis
-   `cp allfontsgen/output/linux-x86_64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
-4. Builder l'exe `Abx2t` distribuable : `bash build/package_linux.sh` puis
-   `dotnet publish src/Abx2t.csproj -c Release -r linux-x64` (voir
-   [src/README.md](src/README.md) pour le detail NativeAOT).
+Aucune installation : au premier lancement, l'exécutable extrait ses composants et
+indexe les polices de la machine tout seul. Entrée : tout ce qu'ONLYOFFICE sait lire
+(docx, doc, odt, xlsx, pptx, pdf, html, rtf, epub, vsdx…). Sortie : docx, odt, rtf,
+txt, html, pdf, pptx, odp, xlsx, ods, csv, xps. Les chemins réseau
+(`\\serveur\partage`) sont gérés.
 
 ## Documentation
 
-- [src/README.md](src/README.md) : usage et architecture de `Abx2t.exe`
-- [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md) : formats acceptes, ce qui est teste
-- [allfontsgen/docs/INDEX.md](allfontsgen/docs/INDEX.md)
-- [allfontsgen/docs/USAGE.md](allfontsgen/docs/USAGE.md)
-- [allfontsgen/docs/MAINTENANCE.md](allfontsgen/docs/MAINTENANCE.md)
-- [x2t/docs/SETUP.md](x2t/docs/SETUP.md)
-- [x2t/docs/USAGE.md](x2t/docs/USAGE.md)
-- [x2t/docs/MAINTENANCE.md](x2t/docs/MAINTENANCE.md)
+**Tout est dans [docs/](docs/README.md)** — utilisation détaillée, architecture, build,
+composants, performances, licences, maintenance.
 
-## License and attribution
+- Utilisateur : [docs/02-utilisation.md](docs/02-utilisation.md)
+- Développeur/mainteneur : [docs/01-vue-ensemble.md](docs/01-vue-ensemble.md) puis
+  [docs/04-build.md](docs/04-build.md)
 
-AbX2T is distributed under the **[GNU AGPLv3](LICENSE)** license.
-Copyright (C) 2026 Hugo Lagouardat, [Abend-core](https://github.com/Abend-core) project.
+## Construire depuis les sources (résumé)
 
-This repository bundles **ONLYOFFICE** components (x2t, sdkjs, and a vendored source subset
-used to build `allfontsgen`), Copyright (C) Ascensio System SIA, also under AGPLv3, as well
-as FreeType (FTL). Component details, versions, and pointers to the corresponding source code: see
-**[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)**. `Abx2t.exe --license` prints the same
-summary on the command line.
+```sh
+# macOS (même pipeline sur Windows/Linux, voir docs/04-build.md)
+zsh build/fetch_onlyoffice_macos.sh                      # binaires ONLYOFFICE officiels (hash vérifié)
+cd allfontsgen && zsh build/scripts/build_macos.sh && zsh build/scripts/generate_macos.sh && cd ..
+cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js
+zsh build/package_macos.sh
+dotnet publish src/Abx2t.csproj -c Release -r osx-arm64
+bash build/smoke_test.sh src/bin/Release/net10.0/osx-arm64/publish/Abx2t
+```
 
-AbX2T is not affiliated with, endorsed by, or sponsored by Ascensio System SIA / ONLYOFFICE.
+Les versions du bundle ONLYOFFICE sont épinglées dans [`VERSIONS`](VERSIONS) (source
+unique). Les binaires ONLYOFFICE ne sont pas commités : ils se retéléchargent à
+l'identique depuis les releases officielles.
 
-### Current distribution status
+## Licence et attribution
 
-`x2t/bin/` and `x2t/sdkjs/` (ONLYOFFICE binaries) are NOT committed to this repository:
-they are re-downloaded from the official ONLYOFFICE releases by `build/fetch_onlyoffice_*`
-(version pinned in `VERSIONS`, SHA-256 verified). End users will not need any of this:
-once the product is stable, a ready-to-use executable (`Abx2t.exe`, self-extracting on
-first run) will be offered for download via GitHub Releases.
+AbX2T est distribué sous **[GNU AGPLv3](LICENSE)**.
+Copyright (C) 2026 Hugo Lagouardat, projet [Abend-core](https://github.com/Abend-core).
+
+Ce projet emballe des composants **ONLYOFFICE** (x2t, sdkjs, sous-ensemble de sources
+pour allfontsgen), Copyright (C) Ascensio System SIA, également AGPLv3, ainsi que
+FreeType (FTL) — utilisés non modifiés. Détails, versions et sources correspondantes :
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) et
+[docs/07-licences.md](docs/07-licences.md). `Abx2t --license` affiche le même résumé.
+
+AbX2T n'est ni affilié à, ni approuvé, ni sponsorisé par Ascensio System SIA /
+ONLYOFFICE.
+
+---
+
+*Documentation à jour au commit `6c3f6e8`.*

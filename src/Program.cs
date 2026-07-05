@@ -4,6 +4,7 @@
 // also under AGPLv3. See --license, LICENSE, and THIRD-PARTY-NOTICES.md.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -12,7 +13,21 @@ using System.Xml;
 
 class Program
 {
-    const string LicenseNotice = @"AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core project)
+    // Bundle versions injected at build time from /VERSIONS (single source of truth),
+    // see the ReadBundleVersions target in Abx2t.csproj.
+    static readonly string OnlyOfficeVersion   = GetAssemblyMetadata("OnlyOfficeVersion");
+    static readonly string OnlyOfficeCoreBuild = GetAssemblyMetadata("OnlyOfficeCoreBuild");
+
+    static string GetAssemblyMetadata(string key)
+    {
+        foreach (var attr in Assembly.GetExecutingAssembly()
+                     .GetCustomAttributes(typeof(AssemblyMetadataAttribute), false))
+            if (attr is AssemblyMetadataAttribute meta && meta.Key == key && !string.IsNullOrEmpty(meta.Value))
+                return meta.Value;
+        return "unknown";
+    }
+
+    static string LicenseNotice => $@"AbX2T - Copyright (C) 2026 Hugo Lagouardat (Abend-core project)
 https://github.com/Abend-core/AbX2T
 
 This program is free software: you can redistribute it and/or modify it under the terms of
@@ -21,11 +36,11 @@ Foundation. This program is distributed WITHOUT ANY WARRANTY. Full license text:
 https://www.gnu.org/licenses/agpl-3.0.html (LICENSE file in this repository).
 
 Bundled third-party components:
-  ONLYOFFICE x2t / sdkjs (conversion engine and runtime), version 9.4.0.129
+  ONLYOFFICE x2t / sdkjs (conversion engine and runtime), version {OnlyOfficeCoreBuild}
   Copyright (C) Ascensio System SIA - https://www.onlyoffice.com
   License: GNU AGPLv3. Corresponding source (exact version):
-    https://github.com/ONLYOFFICE/core/releases/tag/v9.4.0.129
-    https://github.com/ONLYOFFICE/sdkjs/releases/tag/v9.4.0.129
+    https://github.com/ONLYOFFICE/core/releases/tag/v{OnlyOfficeCoreBuild}
+    https://github.com/ONLYOFFICE/sdkjs/releases/tag/v{OnlyOfficeCoreBuild}
   Unmodified components, simply packaged and invoked as a subprocess by AbX2T.
   These binaries embed further third-party libraries (ICU, FreeType, HarfBuzz, V8, ...);
   see 3DPARTY.md in the ONLYOFFICE/core repository.
@@ -39,7 +54,7 @@ Full details: THIRD-PARTY-NOTICES.md and LICENSE, extracted to resources/ on fir
 available in the source repository.";
 
     // Formats read by ONLYOFFICE in this bundle (word/cell/slide/visio/pdf + x2t/bin DLLs, see
-    // convert/docs/SUPPORTED_FORMATS.md). Written formats: subset actually writable
+    // docs/SUPPORTED_FORMATS.md). Written formats: subset actually writable
     // (legacy binary and e-book/scan formats are read but never written back by ONLYOFFICE).
     static readonly string[] InputExtensions = {
         "doc","docx","docm","dotx","dotm","odt","ott","rtf","txt","html","mht","epub","fb2","mobi","hwp","hwpx","md",
@@ -105,13 +120,27 @@ available in the source repository.";
         string customFontsDir = Path.Combine(exeDir, "custom-fonts");
         string x2tPath        = Path.Combine(resourcesDir, OperatingSystem.IsWindows() ? "x2t.exe" : "x2t");
         string allFonts       = Path.Combine(allfontsDir, "AllFonts.js");
+        string fontsManifest  = Path.Combine(allfontsDir, "fonts.manifest");
 
-        // Extract assets if missing (x2t.exe, DLLs, allfontsgen.exe, sdkjs -> resources/)
-        if (!File.Exists(x2tPath))
+        // Extract assets when missing, stale or incomplete. resources/.version is written
+        // LAST, after a successful extraction: it is both the bundle version marker (an
+        // Abx2t update ships a new assets.zip -> version differs -> re-extract) and the
+        // completeness marker (a crash mid-extraction leaves no marker -> re-extract).
+        string versionMarker    = Path.Combine(resourcesDir, ".version");
+        string installedVersion = File.Exists(versionMarker) ? File.ReadAllText(versionMarker).Trim() : "";
+        if (!File.Exists(x2tPath) || installedVersion != OnlyOfficeCoreBuild)
         {
-            Console.WriteLine("First run: extracting components...");
+            Console.WriteLine(installedVersion.Length == 0
+                ? "First run: extracting components..."
+                : $"Bundle update ({installedVersion} -> {OnlyOfficeCoreBuild}): re-extracting components...");
+            if (Directory.Exists(resourcesDir))
+                Directory.Delete(resourcesDir, recursive: true);
             int r = ExtractAssets(resourcesDir);
             if (r != 0) return r;
+            File.WriteAllText(versionMarker, OnlyOfficeCoreBuild);
+            // The wipe removed resources/sdkjs/common/AllFonts.js (restored by the font
+            // generation): force it to run again.
+            if (File.Exists(fontsManifest)) File.Delete(fontsManifest);
             TryCompressResources(resourcesDir);
             Console.WriteLine("Extraction OK.");
         }
@@ -121,13 +150,21 @@ available in the source repository.";
         // discoverable, even before any font is added.
         Directory.CreateDirectory(customFontsDir);
 
-        // Generate AllFonts.js if missing, or if custom-fonts/ has files newer than it
-        // (a new font was added since the last generation).
-        if (!File.Exists(allFonts) || HasNewerFiles(customFontsDir, File.GetLastWriteTimeUtc(allFonts)))
+        // Self-healing font index: allfonts/fonts.manifest captures the exact custom-fonts/
+        // state (path|size|mtime per file, plus the bundle version) and is written LAST,
+        // after a successful generation. Any added, removed or modified font changes the
+        // state; a crash mid-generation leaves no manifest. Both cases -> regenerate.
+        string fontsState = ComputeFontsState(customFontsDir);
+        bool fontsUpToDate = File.Exists(allFonts)
+            && File.Exists(fontsManifest)
+            && File.ReadAllText(fontsManifest) == fontsState;
+        if (!fontsUpToDate)
         {
             Console.WriteLine("Generating system fonts index...");
+            if (File.Exists(fontsManifest)) File.Delete(fontsManifest);
             int r = GenerateFonts(resourcesDir, allfontsDir, allFonts, customFontsDir);
             if (r != 0) return r;
+            File.WriteAllText(fontsManifest, fontsState);
             Console.WriteLine("Fonts OK.");
         }
 
@@ -389,13 +426,16 @@ available in the source repository.";
         }
     }
 
-    static bool HasNewerFiles(string dir, DateTime sinceUtc)
+    // One line per file in custom-fonts/ (relative path|size|mtime ticks), sorted, plus
+    // the bundle version: any change to the fonts or a bundle update changes this string,
+    // which is compared byte-for-byte against allfonts/fonts.manifest.
+    static string ComputeFontsState(string customFontsDir)
     {
-        foreach (string f in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
-        {
-            if (File.GetLastWriteTimeUtc(f) > sinceUtc) return true;
-        }
-        return false;
+        var lines = new List<string>();
+        foreach (string f in Directory.EnumerateFiles(customFontsDir, "*", SearchOption.AllDirectories))
+            lines.Add($"{Path.GetRelativePath(customFontsDir, f)}|{new FileInfo(f).Length}|{File.GetLastWriteTimeUtc(f).Ticks}");
+        lines.Sort(StringComparer.Ordinal);
+        return $"bundle={OnlyOfficeCoreBuild}\n{string.Join("\n", lines)}\n";
     }
 
     static void WriteConfig(string config, string input, string output,

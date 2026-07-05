@@ -27,6 +27,9 @@
     <Copyright>Copyright (C) 2026 Hugo Lagouardat (Abend-core). Licensed under GNU AGPL-3.0-or-later. Bundles ONLYOFFICE components (C) Ascensio System SIA (AGPLv3).</Copyright>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Abend-core/AbX2T</RepositoryUrl>
+    <!-- Treat /VERSIONS as a build input: bumping it must invalidate the generated
+         AssemblyInfo (incremental builds would otherwise keep the old bundle version). -->
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileDirectory)../VERSIONS</MSBuildAllProjects>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,5 +37,33 @@
          (default would be "<RootNamespace>.assets.zip"); Program.cs reads it by this name. -->
     <EmbeddedResource Include="assets.zip" LogicalName="assets.zip" />
   </ItemGroup>
+
+  <!-- Bundle versions come from /VERSIONS (single source of truth) and are injected as
+       assembly metadata, read back by Program.cs at runtime (license notice, version flag,
+       resources/.version marker). VERSIONS comments must stay apostrophe-free: each line
+       goes through an MSBuild quoted string in the Condition below. -->
+  <Target Name="ReadBundleVersions" BeforeTargets="GetAssemblyAttributes">
+    <ReadLinesFromFile File="$(MSBuildThisFileDirectory)../VERSIONS">
+      <Output TaskParameter="Lines" ItemName="_VersionsLine" />
+    </ReadLinesFromFile>
+    <ItemGroup>
+      <_OoVersionLine Include="@(_VersionsLine)" Condition="$([System.String]::Copy('%(Identity)').StartsWith('ONLYOFFICE_VERSION='))" />
+      <_OoCoreBuildLine Include="@(_VersionsLine)" Condition="$([System.String]::Copy('%(Identity)').StartsWith('ONLYOFFICE_CORE_BUILD='))" />
+    </ItemGroup>
+    <PropertyGroup>
+      <!-- Item vectors do not expand inside property function arguments: assign the
+           matched line to a property first, then slice off the KEY= prefix. -->
+      <_OoVersionLineText>@(_OoVersionLine)</_OoVersionLineText>
+      <_OoCoreBuildLineText>@(_OoCoreBuildLine)</_OoCoreBuildLineText>
+      <_OnlyOfficeVersion Condition="'$(_OoVersionLineText)' != ''">$(_OoVersionLineText.Substring(19).Trim())</_OnlyOfficeVersion>
+      <_OnlyOfficeCoreBuild Condition="'$(_OoCoreBuildLineText)' != ''">$(_OoCoreBuildLineText.Substring(22).Trim())</_OnlyOfficeCoreBuild>
+    </PropertyGroup>
+    <Error Condition="'$(_OnlyOfficeVersion)' == '' or '$(_OnlyOfficeCoreBuild)' == ''"
+           Text="ONLYOFFICE_VERSION / ONLYOFFICE_CORE_BUILD not found in VERSIONS" />
+    <ItemGroup>
+      <AssemblyMetadata Include="OnlyOfficeVersion" Value="$(_OnlyOfficeVersion)" />
+      <AssemblyMetadata Include="OnlyOfficeCoreBuild" Value="$(_OnlyOfficeCoreBuild)" />
+    </ItemGroup>
+  </Target>
 
 </Project>

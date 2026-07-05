@@ -6,7 +6,7 @@
 #
 # macOS equivalent of package_windows.ps1. Assembles src/assets.zip (resource
 # embedded in Abx2t), gathering x2t + its .framework bundles + the full x2t/sdkjs/ tree
-# (from x2t/bin/macos-arm64/ and x2t/sdkjs/, populated by x2t/build/scripts/sync_from_release.sh)
+# (from x2t/bin/macos-arm64/ and x2t/sdkjs/, populated by x2t/build/scripts/sync_from_release_macos.sh)
 # and allfontsgen (from allfontsgen/build/bin/macos-arm64/, compiled by
 # allfontsgen/build/scripts/build_macos.sh if missing).
 #
@@ -18,7 +18,7 @@
 #
 # Usage: zsh build/package_macos.sh
 #
-# Prerequisite: run x2t/build/scripts/sync_from_release.sh at least once.
+# Prerequisite: run x2t/build/scripts/sync_from_release_macos.sh at least once.
 
 set -euo pipefail
 
@@ -31,8 +31,8 @@ sdkjs_src="$repo/x2t/sdkjs"
 allfontsgen="$repo/allfontsgen/build/bin/macos-arm64/allfontsgen"
 assets_zip="$repo/src/assets.zip"
 
-[[ -f "$x2t_bin/x2t" ]] || { echo "x2t not found in $x2t_bin -- run x2t/build/scripts/sync_from_release.sh first" >&2; exit 1; }
-[[ -d "$sdkjs_src" ]] || { echo "sdkjs not found in $sdkjs_src -- run x2t/build/scripts/sync_from_release.sh first" >&2; exit 1; }
+[[ -f "$x2t_bin/x2t" ]] || { echo "x2t not found in $x2t_bin -- run x2t/build/scripts/sync_from_release_macos.sh first" >&2; exit 1; }
+[[ -d "$sdkjs_src" ]] || { echo "sdkjs not found in $sdkjs_src -- run x2t/build/scripts/sync_from_release_macos.sh first" >&2; exit 1; }
 
 if [[ ! -f "$allfontsgen" ]]; then
   echo "allfontsgen not found -- compiling..."

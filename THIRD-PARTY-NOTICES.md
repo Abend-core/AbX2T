@@ -27,7 +27,7 @@ source code, in accordance with AGPLv3 obligations (section 6, "Corresponding So
     on each machine by `allfontsgen`.
 - **Provenance**: components are taken as-is from an official ONLYOFFICE Desktop Editors
   installation or release package (see `x2t/build/scripts/sync_from_install_windows.ps1`,
-  `sync_from_release.sh` and `sync_from_release_linux.sh`). **No modification** is made to these binaries or JS files: AbX2T
+  `sync_from_release_macos.sh` and `sync_from_release_linux.sh`). **No modification** is made to these binaries or JS files: AbX2T
   only packages them and invokes them as a subprocess from its own code
   (`src/Program.cs`).
 - **Corresponding source** (exact version match): ONLYOFFICE publishes the source for this

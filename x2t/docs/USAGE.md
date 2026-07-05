@@ -3,7 +3,7 @@
 ## Prerequis
 
 Avoir execute les etapes de SETUP.md au moins une fois :
-- `x2t/bin/` peuple (`sync_from_release.sh` sur macOS, `sync_from_install_windows.ps1` sur Windows)
+- `x2t/bin/` peuple (`sync_from_release_macos.sh` sur macOS, `sync_from_install_windows.ps1` sur Windows)
 - `x2t/sdkjs/` peuple, avec `x2t/sdkjs/common/AllFonts.js` present
 
 ## Convertir un document

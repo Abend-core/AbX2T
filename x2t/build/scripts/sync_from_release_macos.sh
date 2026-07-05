@@ -12,7 +12,7 @@ bundle_root=$(cd -- "${0:A:h}/../.." && pwd)
 
 usage() {
   cat <<'EOF'
-Usage: zsh x2t/build/scripts/sync_from_release.sh [--dry-run] <release_dir>
+Usage: zsh x2t/build/scripts/sync_from_release_macos.sh [--dry-run] <release_dir>
 
 Synchronizes the x2t bundle from an official ONLYOFFICE release.
 Populates x2t/bin/ (binary + frameworks) and x2t/sdkjs/ (minimal JS needed for conversion).

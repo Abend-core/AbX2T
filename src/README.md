@@ -74,7 +74,7 @@ dotnet publish src\Abx2t.csproj -c Release
 
 ```sh
 # 1. Recuperer x2t + frameworks + sdkjs depuis une release officielle ONLYOFFICE
-zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources
+zsh x2t/build/scripts/sync_from_release_macos.sh /chemin/vers/Resources
 
 # 2. Assembler assets.zip (compile allfontsgen si absent ; utilise ditto pour preserver
 #    les symlinks des .framework -- voir Architecture ci-dessous)

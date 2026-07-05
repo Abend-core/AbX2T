@@ -5,7 +5,7 @@
 ### macOS arm64
 - Xcode Command Line Tools
 - `clang`, `clang++`, `zsh`
-- x2t disponible (via `x2t/build/scripts/sync_from_release.sh`)
+- x2t disponible (via `x2t/build/scripts/sync_from_release_macos.sh`)
 
 ### Windows x86_64
 - Visual Studio 2019+ avec workload C++

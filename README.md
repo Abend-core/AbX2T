@@ -60,7 +60,7 @@ Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete d
 `Abx2t` lui-meme.
 
 1. Se procurer une release officielle ONLYOFFICE (dossier `Resources/`)
-2. `zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources`
+2. `zsh x2t/build/scripts/sync_from_release_macos.sh /chemin/vers/Resources`
 3. Deposer `core-master/` a la racine, compiler allfontsgen : `cd allfontsgen && zsh build/scripts/build_macos.sh`
 4. Generer les polices : `zsh build/scripts/generate_macos.sh`
 5. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`

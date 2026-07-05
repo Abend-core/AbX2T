@@ -28,8 +28,8 @@ ONLYOFFICE Desktop Editors est installe, ou dans l'archive de release correspond
 ### 1. Synchroniser x2t depuis la release
 
 ```sh
-zsh x2t/build/scripts/sync_from_release.sh --dry-run /chemin/vers/Resources   # verifier
-zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources
+zsh x2t/build/scripts/sync_from_release_macos.sh --dry-run /chemin/vers/Resources   # verifier
+zsh x2t/build/scripts/sync_from_release_macos.sh /chemin/vers/Resources
 ```
 
 Produit:
@@ -55,7 +55,7 @@ Voir [allfontsgen/README.md](../../allfontsgen/README.md) pour le detail de ce b
 cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js
 ```
 
-`sync_from_release.sh` preserve ce fichier lors des synchros suivantes s'il est deja present.
+`sync_from_release_macos.sh` preserve ce fichier lors des synchros suivantes s'il est deja present.
 
 ### 4. Tester
 

@@ -8,7 +8,7 @@
 Synchronizes the x2t bundle from a local ONLYOFFICE Desktop Editors installation (Windows).
 
 .DESCRIPTION
-Windows equivalent of build/scripts/sync_from_release.sh (macOS): populates
+Windows equivalent of build/scripts/sync_from_release_macos.sh (macOS): populates
 x2t/bin/windows-x86_64/ (x2t.exe binary + DLLs + DoctRenderer.config) and x2t/sdkjs/
 (minimal JS needed for conversion) from an ONLYOFFICE Desktop Editors installation
 already present on the machine.
@@ -57,7 +57,7 @@ Write-Host "Editors     : $editorsDir"
 Write-Host "Destination bin   : $binDest"
 Write-Host "Destination sdkjs : $sdkjsDest"
 
-# JS files needed for conversion (same as sync_from_release.sh on macOS)
+# JS files needed for conversion (same as sync_from_release_macos.sh on macOS)
 $sdkjsFiles = @(
     'common\Native\native.js',
     'common\Native\jquery_native.js',

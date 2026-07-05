@@ -47,7 +47,7 @@ font_dir=${3:-"$workspace_root/allfontsgen/output/macos-arm64/fonts"}
 x2t_bin="$bundle_root/bin/macos-arm64/x2t"
 all_fonts="$bundle_root/sdkjs/common/AllFonts.js"
 
-[[ -x "$x2t_bin" ]] || { echo "Binary not found: $x2t_bin (run sync_from_release.sh)" >&2; exit 1; }
+[[ -x "$x2t_bin" ]] || { echo "Binary not found: $x2t_bin (run sync_from_release_macos.sh)" >&2; exit 1; }
 [[ -f "$all_fonts" ]] || { echo "AllFonts.js not found: $all_fonts" >&2; exit 1; }
 [[ -d "$font_dir" ]] || { echo "Fonts directory not found: $font_dir" >&2; exit 1; }
 [[ -f "$file_from" ]] || { echo "Source file not found: $file_from" >&2; exit 1; }

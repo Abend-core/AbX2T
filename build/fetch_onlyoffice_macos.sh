@@ -7,7 +7,7 @@
 #
 # Downloads ONLYOFFICE-arm.dmg from the GitHub release pinned in /VERSIONS (or the
 # latest release with --latest), verifies its SHA-256 against VERSIONS when pinned,
-# mounts it, then chains into x2t/build/scripts/sync_from_release.sh -- which remains
+# mounts it, then chains into x2t/build/scripts/sync_from_release_macos.sh -- which remains
 # usable on its own as the manual fallback (point it at any Resources/ directory)
 # if these download URLs ever break.
 #
@@ -85,4 +85,4 @@ app=("$mount_point"/*.app(N))
 resources="${app[1]}/Contents/Resources"
 [[ -f "$resources/converter/x2t" ]] || { echo "converter/x2t not found in $resources" >&2; exit 1; }
 
-zsh "$repo/x2t/build/scripts/sync_from_release.sh" "$resources"
+zsh "$repo/x2t/build/scripts/sync_from_release_macos.sh" "$resources"

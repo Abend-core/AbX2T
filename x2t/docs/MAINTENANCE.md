@@ -6,14 +6,14 @@
   [README.md](../../README.md#current-distribution-status)) : generes/re-synchronises
   localement via les scripts ci-dessous, puis commites tels quels.
 - Sur Windows, x2t.exe et ses DLLs viennent de ONLYOFFICE Desktop installe.
-- Sur macOS, x2t vient d une release officielle ONLYOFFICE via sync_from_release.sh.
+- Sur macOS, x2t vient d une release officielle ONLYOFFICE via sync_from_release_macos.sh.
 - `AllFonts.js` est toujours genere par allfontsgen depuis les polices du PC cible.
 
 ## Mettre a jour x2t (macOS — nouvelle release ONLYOFFICE)
 
 ```sh
-zsh x2t/build/scripts/sync_from_release.sh --dry-run /chemin/vers/nouvelle/Resources
-zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/nouvelle/Resources
+zsh x2t/build/scripts/sync_from_release_macos.sh --dry-run /chemin/vers/nouvelle/Resources
+zsh x2t/build/scripts/sync_from_release_macos.sh /chemin/vers/nouvelle/Resources
 ```
 
 Points de vigilance :
@@ -38,7 +38,7 @@ Points de vigilance :
 ## DoctRenderer.config
 
 Ce fichier configure les chemins JS relatifs pour x2t / x2t.exe, et differe selon la mise en page :
-- Dans `x2t/bin/macos-arm64/` (genere par `sync_from_release.sh`) et `x2t/bin/windows-x86_64/`
+- Dans `x2t/bin/macos-arm64/` (genere par `sync_from_release_macos.sh`) et `x2t/bin/windows-x86_64/`
   (genere par `sync_from_install_windows.ps1`) : pointe vers `../../sdkjs/` (chaque sous-dossier
   bin/<os-arch>/ est imbrique deux niveaux sous x2t/).
 - Dans `resources/` (assets.zip embarque dans `Abx2t.exe`, genere par `package_windows.ps1`) :

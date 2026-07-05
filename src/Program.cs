@@ -71,30 +71,87 @@ available in the source repository.";
         "xps",
     };
 
+    static string ProgName => Path.GetFileName(Environment.ProcessPath) ?? "Abx2t";
+
+    // Exit codes: 0 = success, 1 = usage or wrapper error, 2 = x2t conversion error,
+    // 3 = timeout. Documented in --help so calling scripts can tell them apart.
+    static void PrintUsage(TextWriter w)
+    {
+        w.WriteLine($"Usage: {ProgName} [options] <source> <output>");
+        w.WriteLine($"  Accepted input  : .{string.Join(", .", InputExtensions)}");
+        w.WriteLine($"  Accepted output : .{string.Join(", .", OutputExtensions)}");
+        w.WriteLine();
+        w.WriteLine("Options:");
+        w.WriteLine("  --timeout <minutes>  Maximum conversion time (default: 30, 0 = no limit)");
+        w.WriteLine("  --verbose            Print x2t output even when the conversion succeeds");
+        w.WriteLine("  --version            Print the Abx2t / ONLYOFFICE bundle version");
+        w.WriteLine("  --license            AGPLv3 license and ONLYOFFICE attribution");
+        w.WriteLine("  --help               This help");
+        w.WriteLine();
+        w.WriteLine("Exit codes: 0 = success, 1 = usage/wrapper error, 2 = x2t error, 3 = timeout");
+    }
+
     static int Main(string[] args)
     {
-        if (args.Length >= 1 && (args[0] == "--license" || args[0] == "--licence" || args[0] == "--about"))
+        var positional = new List<string>();
+        bool verbose = false;
+        int timeoutMinutes = 30;
+
+        for (int i = 0; i < args.Length; i++)
         {
-            Console.WriteLine(LicenseNotice);
-            return 0;
+            switch (args[i])
+            {
+                case "--license" or "--licence" or "--about":
+                    Console.WriteLine(LicenseNotice);
+                    return 0;
+                case "--version":
+                    Console.WriteLine($"{ProgName} {OnlyOfficeCoreBuild} (ONLYOFFICE bundle {OnlyOfficeVersion}, core build {OnlyOfficeCoreBuild})");
+                    return 0;
+                case "--help" or "-h" or "-?":
+                    PrintUsage(Console.Out);
+                    return 0;
+                case "--verbose" or "-v":
+                    verbose = true;
+                    break;
+                case "--timeout":
+                    if (i + 1 >= args.Length || !int.TryParse(args[++i], out timeoutMinutes) || timeoutMinutes < 0)
+                    {
+                        Console.Error.WriteLine("Error: --timeout expects a number of minutes (0 = no limit)");
+                        return 1;
+                    }
+                    break;
+                default:
+                    if (args[i].StartsWith('-'))
+                    {
+                        Console.Error.WriteLine($"Error: unknown option {args[i]} (see --help)");
+                        return 1;
+                    }
+                    positional.Add(args[i]);
+                    break;
+            }
         }
 
-        if (args.Length < 2)
+        if (positional.Count != 2)
         {
-            string progName = Path.GetFileName(Environment.ProcessPath) ?? "Abx2t";
-            Console.Error.WriteLine($"Usage: {progName} <source> <output>");
-            Console.Error.WriteLine($"  Accepted input  : .{string.Join(", .", InputExtensions)}");
-            Console.Error.WriteLine($"  Accepted output : .{string.Join(", .", OutputExtensions)}");
-            Console.Error.WriteLine($"  {progName} --license : AGPLv3 license and ONLYOFFICE attribution");
+            PrintUsage(Console.Error);
             return 1;
         }
 
-        string input  = Path.GetFullPath(args[0]);
-        string output = Path.GetFullPath(args[1]);
+        string input  = Path.GetFullPath(positional[0]);
+        string output = Path.GetFullPath(positional[1]);
 
         if (!File.Exists(input))
         {
             Console.Error.WriteLine($"Error: source file not found: {input}");
+            return 1;
+        }
+
+        // Refuse converting a file onto itself: the source would be overwritten by its
+        // own reconversion. Filesystems are case-insensitive on Windows/macOS.
+        if (string.Equals(input, output,
+                OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+        {
+            Console.Error.WriteLine("Error: source and output are the same file");
             return 1;
         }
 
@@ -212,22 +269,40 @@ available in the source repository.";
             // if x2t fills the buffer of the pipe not being read.
             var stdoutTask = proc.StandardOutput.ReadToEndAsync();
             var stderrTask = proc.StandardError.ReadToEndAsync();
-            proc.WaitForExit();
+
+            // A healthy conversion of even a huge file finishes in minutes; an x2t stuck
+            // on a malformed file never finishes. The generous default separates the two
+            // without cutting legitimate work short.
+            long timeoutMs = timeoutMinutes == 0 ? -1 : Math.Min((long)timeoutMinutes * 60_000, int.MaxValue);
+            if (!proc.WaitForExit((int)timeoutMs))
+            {
+                try { proc.Kill(entireProcessTree: true); } catch { /* already gone */ }
+                proc.WaitForExit();
+                Console.Error.WriteLine($"Error: conversion timed out after {timeoutMinutes} min " +
+                                        "(--timeout <minutes> to adjust, 0 to disable)");
+                return 3;
+            }
             string stdout = stdoutTask.Result;
             string stderr = stderrTask.Result;
 
             if (proc.ExitCode != 0)
             {
-                Console.Error.WriteLine($"x2t error (code {proc.ExitCode})");
+                Console.Error.WriteLine($"x2t error (x2t exit code {proc.ExitCode})");
                 if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
                 if (!string.IsNullOrWhiteSpace(stdout)) Console.Error.WriteLine(stdout);
-                return proc.ExitCode;
+                return 2;
+            }
+
+            if (verbose)
+            {
+                if (!string.IsNullOrWhiteSpace(stdout)) Console.WriteLine(stdout);
+                if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
             }
 
             if (!File.Exists(localOutput))
             {
                 Console.Error.WriteLine("Error: conversion finished but the output file is missing");
-                return 1;
+                return 2;
             }
 
             try

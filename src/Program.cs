@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Threading;
 using System.Xml;
 
 class Program
@@ -171,58 +172,22 @@ available in the source repository.";
             return 1;
         }
 
-        string exeDir         = AppContext.BaseDirectory;
-        string resourcesDir   = Path.Combine(exeDir, "resources");
-        string allfontsDir    = Path.Combine(exeDir, "allfonts");
-        string customFontsDir = Path.Combine(exeDir, "custom-fonts");
+        string baseDir        = ResolveBaseDir(AppContext.BaseDirectory);
+        string resourcesDir   = Path.Combine(baseDir, "resources");
+        string allfontsDir    = Path.Combine(baseDir, "allfonts");
+        string customFontsDir = Path.Combine(baseDir, "custom-fonts");
         string x2tPath        = Path.Combine(resourcesDir, OperatingSystem.IsWindows() ? "x2t.exe" : "x2t");
         string allFonts       = Path.Combine(allfontsDir, "AllFonts.js");
         string fontsManifest  = Path.Combine(allfontsDir, "fonts.manifest");
 
-        // Extract assets when missing, stale or incomplete. resources/.version is written
-        // LAST, after a successful extraction: it is both the bundle version marker (an
-        // Abx2t update ships a new assets.zip -> version differs -> re-extract) and the
-        // completeness marker (a crash mid-extraction leaves no marker -> re-extract).
-        string versionMarker    = Path.Combine(resourcesDir, ".version");
-        string installedVersion = File.Exists(versionMarker) ? File.ReadAllText(versionMarker).Trim() : "";
-        if (!File.Exists(x2tPath) || installedVersion != OnlyOfficeCoreBuild)
+        // Serialize the preparation of the shared state (resources/, allfonts/): two
+        // instances launched simultaneously on a fresh machine would extract and generate
+        // over each other. Conversions themselves still run in parallel freely afterwards
+        // (each one has its own work dir).
+        using (AcquireStateLock(Path.Combine(baseDir, ".abx2t.lock")))
         {
-            Console.WriteLine(installedVersion.Length == 0
-                ? "First run: extracting components..."
-                : $"Bundle update ({installedVersion} -> {OnlyOfficeCoreBuild}): re-extracting components...");
-            if (Directory.Exists(resourcesDir))
-                Directory.Delete(resourcesDir, recursive: true);
-            int r = ExtractAssets(resourcesDir);
+            int r = EnsureComponents(resourcesDir, x2tPath, allfontsDir, allFonts, fontsManifest, customFontsDir);
             if (r != 0) return r;
-            File.WriteAllText(versionMarker, OnlyOfficeCoreBuild);
-            // The wipe removed resources/sdkjs/common/AllFonts.js (restored by the font
-            // generation): force it to run again.
-            if (File.Exists(fontsManifest)) File.Delete(fontsManifest);
-            TryCompressResources(resourcesDir);
-            Console.WriteLine("Extraction OK.");
-        }
-
-        // custom-fonts/ : extra fonts dropped in manually (no Windows install required),
-        // indexed by allfontsgen alongside system fonts. Always created so it stays
-        // discoverable, even before any font is added.
-        Directory.CreateDirectory(customFontsDir);
-
-        // Self-healing font index: allfonts/fonts.manifest captures the exact custom-fonts/
-        // state (path|size|mtime per file, plus the bundle version) and is written LAST,
-        // after a successful generation. Any added, removed or modified font changes the
-        // state; a crash mid-generation leaves no manifest. Both cases -> regenerate.
-        string fontsState = ComputeFontsState(customFontsDir);
-        bool fontsUpToDate = File.Exists(allFonts)
-            && File.Exists(fontsManifest)
-            && File.ReadAllText(fontsManifest) == fontsState;
-        if (!fontsUpToDate)
-        {
-            Console.WriteLine("Generating system fonts index...");
-            if (File.Exists(fontsManifest)) File.Delete(fontsManifest);
-            int r = GenerateFonts(resourcesDir, allfontsDir, allFonts, customFontsDir);
-            if (r != 0) return r;
-            File.WriteAllText(fontsManifest, fontsState);
-            Console.WriteLine("Fonts OK.");
         }
 
         string sdkjsDir = Path.Combine(resourcesDir, "sdkjs");
@@ -230,26 +195,32 @@ available in the source repository.";
         if (!string.IsNullOrEmpty(outputDir))
             Directory.CreateDirectory(outputDir);
 
-        // Local work directory (system TEMP): x2t only reads/writes locally, even if the
-        // real source or destination is on a network share (\\server\share or a mapped
-        // drive). This avoids lock/latency/partial-write issues over the network, and
-        // guarantees a crash leaves nothing behind on the share.
+        // Work directory in the system TEMP for x2t's config and scratch files. Network
+        // source/output paths (\\server\share or a mapped drive) are additionally staged
+        // through it, so x2t only ever reads/writes locally: no SMB locks, latency or
+        // partial writes on the share, and a crash leaves nothing behind there. Local
+        // paths skip the staging copies entirely (no point copying a local file twice).
         string workDir     = Path.Combine(Path.GetTempPath(), $"x2t_convert_{Guid.NewGuid():N}");
         string tempDir     = Path.Combine(workDir, "temp");
-        string localInput  = Path.Combine(workDir, "input." + inputExt);
-        string localOutput = Path.Combine(workDir, "output." + outputExt);
+        bool stageInput    = IsNetworkPath(input);
+        bool stageOutput   = IsNetworkPath(output);
+        string localInput  = stageInput  ? Path.Combine(workDir, "input." + inputExt)   : input;
+        string localOutput = stageOutput ? Path.Combine(workDir, "output." + outputExt) : output;
         Directory.CreateDirectory(tempDir);
         string configPath = Path.Combine(workDir, "config.xml");
         try
         {
-            try
+            if (stageInput)
             {
-                File.Copy(input, localInput, overwrite: true);
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error: could not read source file ({input}): {ex.Message}");
-                return 1;
+                try
+                {
+                    File.Copy(input, localInput, overwrite: true);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Error: could not read source file ({input}): {ex.Message}");
+                    return 1;
+                }
             }
 
             WriteConfig(configPath, localInput, localOutput, allFonts, allfontsDir, sdkjsDir, tempDir);
@@ -305,14 +276,17 @@ available in the source repository.";
                 return 2;
             }
 
-            try
+            if (stageOutput)
             {
-                File.Copy(localOutput, output, overwrite: true);
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error: could not write output file ({output}): {ex.Message}");
-                return 1;
+                try
+                {
+                    File.Copy(localOutput, output, overwrite: true);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Error: could not write output file ({output}): {ex.Message}");
+                    return 1;
+                }
             }
 
             Console.WriteLine($"OK: {output}");
@@ -320,9 +294,133 @@ available in the source repository.";
         }
         finally
         {
-            if (Directory.Exists(workDir))
-                Directory.Delete(workDir, recursive: true);
+            // Best-effort: a stray handle on the work dir (antivirus scan, slow x2t child)
+            // must not turn a finished conversion into a crash.
+            try
+            {
+                if (Directory.Exists(workDir))
+                    Directory.Delete(workDir, recursive: true);
+            }
+            catch { }
         }
+    }
+
+    // resources/, allfonts/ and custom-fonts/ live next to the exe when possible; when
+    // that directory is not writable (e.g. C:\Program Files, /usr/local/bin), fall back
+    // to the per-user data directory so the first run works out of the box.
+    static string ResolveBaseDir(string exeDir)
+    {
+        if (IsWritableDir(exeDir)) return exeDir;
+        string fallback = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Abx2t");
+        Directory.CreateDirectory(fallback);
+        Console.WriteLine($"Note: {exeDir} is not writable; components live in {fallback}");
+        return fallback;
+    }
+
+    static bool IsWritableDir(string dir)
+    {
+        try
+        {
+            string probe = Path.Combine(dir, $".abx2t_probe_{Guid.NewGuid():N}");
+            File.WriteAllText(probe, "");
+            File.Delete(probe);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    // Exclusive lock file; FileShare.None maps to real locking on Windows and flock on
+    // Unix. Released on dispose (or by the OS if the process dies).
+    static FileStream AcquireStateLock(string path)
+    {
+        bool announced = false;
+        while (true)
+        {
+            try
+            {
+                return new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException)
+            {
+                if (!announced)
+                {
+                    Console.WriteLine("Another Abx2t instance is preparing components, waiting...");
+                    announced = true;
+                }
+                Thread.Sleep(500);
+            }
+        }
+    }
+
+    static bool IsNetworkPath(string path)
+    {
+        if (path.StartsWith(@"\\", StringComparison.Ordinal)) return true;   // UNC
+        if (!OperatingSystem.IsWindows()) return false;   // Unix network mounts are rare and indistinguishable; treat as local
+        try
+        {
+            string? root = Path.GetPathRoot(path);
+            return root != null && new DriveInfo(root).DriveType == DriveType.Network;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    static int EnsureComponents(string resourcesDir, string x2tPath, string allfontsDir,
+                                string allFonts, string fontsManifest, string customFontsDir)
+    {
+        // Extract assets when missing, stale or incomplete. resources/.version is written
+        // LAST, after a successful extraction: it is both the bundle version marker (an
+        // Abx2t update ships a new assets.zip -> version differs -> re-extract) and the
+        // completeness marker (a crash mid-extraction leaves no marker -> re-extract).
+        string versionMarker    = Path.Combine(resourcesDir, ".version");
+        string installedVersion = File.Exists(versionMarker) ? File.ReadAllText(versionMarker).Trim() : "";
+        if (!File.Exists(x2tPath) || installedVersion != OnlyOfficeCoreBuild)
+        {
+            Console.WriteLine(installedVersion.Length == 0
+                ? "First run: extracting components..."
+                : $"Bundle update ({installedVersion} -> {OnlyOfficeCoreBuild}): re-extracting components...");
+            if (Directory.Exists(resourcesDir))
+                Directory.Delete(resourcesDir, recursive: true);
+            int r = ExtractAssets(resourcesDir);
+            if (r != 0) return r;
+            File.WriteAllText(versionMarker, OnlyOfficeCoreBuild);
+            // The wipe removed resources/sdkjs/common/AllFonts.js (restored by the font
+            // generation): force it to run again.
+            if (File.Exists(fontsManifest)) File.Delete(fontsManifest);
+            TryCompressResources(resourcesDir);
+            Console.WriteLine("Extraction OK.");
+        }
+
+        // custom-fonts/ : extra fonts dropped in manually (no system install required),
+        // indexed by allfontsgen alongside system fonts. Always created so it stays
+        // discoverable, even before any font is added.
+        Directory.CreateDirectory(customFontsDir);
+
+        // Self-healing font index: allfonts/fonts.manifest captures the exact custom-fonts/
+        // state (path|size|mtime per file, plus the bundle version) and is written LAST,
+        // after a successful generation. Any added, removed or modified font changes the
+        // state; a crash mid-generation leaves no manifest. Both cases -> regenerate.
+        string fontsState = ComputeFontsState(customFontsDir);
+        bool fontsUpToDate = File.Exists(allFonts)
+            && File.Exists(fontsManifest)
+            && File.ReadAllText(fontsManifest) == fontsState;
+        if (!fontsUpToDate)
+        {
+            Console.WriteLine("Generating system fonts index...");
+            if (File.Exists(fontsManifest)) File.Delete(fontsManifest);
+            int r = GenerateFonts(resourcesDir, allfontsDir, allFonts, customFontsDir);
+            if (r != 0) return r;
+            File.WriteAllText(fontsManifest, fontsState);
+            Console.WriteLine("Fonts OK.");
+        }
+
+        return 0;
     }
 
     static int ExtractAssets(string destDir)
@@ -414,6 +512,8 @@ available in the source repository.";
     // the files normally. The directory flag is inherited, so files added later (AllFonts.js
     // copied into sdkjs/common) are compressed too. Best-effort: Windows only, and skipped
     // silently on filesystems without compression support (FAT32, exFAT, network shares).
+    // Fire-and-forget: the compression is transparent, x2t can read files while compact.exe
+    // is still working, so the first run does not wait the tens of seconds it can take.
     static void TryCompressResources(string dir)
     {
         if (!OperatingSystem.IsWindows()) return;
@@ -427,11 +527,12 @@ available in the source repository.";
                 RedirectStandardOutput = true,
                 RedirectStandardError  = true,
             };
-            using var proc = Process.Start(psi);
+            var proc = Process.Start(psi);
             if (proc == null) return;
+            // Drain the pipes without waiting, so compact.exe can never block on a full
+            // buffer while we move on.
             _ = proc.StandardOutput.ReadToEndAsync();
             _ = proc.StandardError.ReadToEndAsync();
-            proc.WaitForExit();
         }
         catch
         {

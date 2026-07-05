@@ -55,4 +55,4 @@ ONLYOFFICE.
 
 ---
 
-*Documentation à jour au commit `6c3f6e8`.*
+*Documentation à jour au commit `b3ddb7b`.*

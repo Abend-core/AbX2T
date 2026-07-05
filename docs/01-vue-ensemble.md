@@ -79,4 +79,4 @@ vérifié par [`VERSIONS`](../VERSIONS) (voir [05-composants.md](05-composants.m
 
 ---
 
-*Documentation à jour au commit `6c3f6e8`.*
+*Documentation à jour au commit `b3ddb7b`.*

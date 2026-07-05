@@ -16,6 +16,10 @@
          dotnet publish -c Release [-r win-x64|osx-arm64|linux-x64] on the matching machine. -->
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Shave a couple MB off the AOT wrapper; no code impact. Exceptions still work,
+         only the textual stack traces are dropped. -->
+    <OptimizationPreference>Size</OptimizationPreference>
+    <StackTraceSupport>false</StackTraceSupport>
     <!-- Fallback without AOT (dotnet publish -p:PublishAot=false), e.g. if the native
          toolchain (MSVC / Xcode / gcc) is missing: compressed single-file JIT bundle. -->
     <PublishSingleFile Condition="'$(PublishAot)' != 'true'">true</PublishSingleFile>

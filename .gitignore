@@ -26,3 +26,7 @@
 
 # cache de telechargement des releases ONLYOFFICE (fetch_onlyoffice_*)
 /build/cache/
+
+# x2t : binaires et JS ONLYOFFICE re-telechargeables (build/fetch_onlyoffice_*)
+/x2t/bin/
+/x2t/sdkjs/

@@ -59,13 +59,14 @@ Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete d
 (x2t, sdkjs, polices), et **[src/README.md](src/README.md#macos)** pour builder
 `Abx2t` lui-meme.
 
-1. Se procurer une release officielle ONLYOFFICE (dossier `Resources/`)
-2. `zsh x2t/build/scripts/sync_from_release_macos.sh /chemin/vers/Resources`
-3. Deposer `core-master/` a la racine, compiler allfontsgen : `cd allfontsgen && zsh build/scripts/build_macos.sh`
-4. Generer les polices : `zsh build/scripts/generate_macos.sh`
-5. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
-6. Tester le moteur seul : `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
-7. Builder l'exe `Abx2t` distribuable : `zsh build/package_macos.sh` puis
+1. Recuperer les binaires ONLYOFFICE (version epinglee dans `VERSIONS`, hash verifie) :
+   `zsh build/fetch_onlyoffice_macos.sh`
+   (fallback manuel : `zsh x2t/build/scripts/sync_from_release_macos.sh /chemin/vers/Resources`)
+2. Deposer `core-master/` a la racine, compiler allfontsgen : `cd allfontsgen && zsh build/scripts/build_macos.sh`
+3. Generer les polices : `zsh build/scripts/generate_macos.sh`
+4. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
+5. Tester le moteur seul : `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
+6. Builder l'exe `Abx2t` distribuable : `zsh build/package_macos.sh` puis
    `dotnet publish src/Abx2t.csproj -c Release -r osx-arm64` (voir
    [src/README.md](src/README.md) pour le detail NativeAOT).
 
@@ -76,13 +77,13 @@ ONLYOFFICE Desktop Editors (l'exe final `Abx2t` ne depend que de la glibc — il
 n'importe quelle distro et dans une image conteneur distroless, voir
 [src/README.md](src/README.md#linux)).
 
-1. Telecharger le `.deb` officiel (version alignee sur le bundle, ici 9.4.0) :
-   `https://download.onlyoffice.com/repo/debian/pool/main/o/onlyoffice-desktopeditors/onlyoffice-desktopeditors_9.4.0_amd64.deb`
-2. `bash x2t/build/scripts/sync_from_release_linux.sh /chemin/vers/le.deb`
-3. Compiler allfontsgen : `cd allfontsgen && bash build/scripts/build_linux.sh`
-4. Generer les polices : `bash build/scripts/generate_linux.sh` puis
+1. Recuperer les binaires ONLYOFFICE (version epinglee dans `VERSIONS`, hash verifie) :
+   `bash build/fetch_onlyoffice_linux.sh`
+   (fallback manuel : `bash x2t/build/scripts/sync_from_release_linux.sh /chemin/vers/le.deb`)
+2. Compiler allfontsgen : `cd allfontsgen && bash build/scripts/build_linux.sh`
+3. Generer les polices : `bash build/scripts/generate_linux.sh` puis
    `cp allfontsgen/output/linux-x86_64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
-5. Builder l'exe `Abx2t` distribuable : `bash build/package_linux.sh` puis
+4. Builder l'exe `Abx2t` distribuable : `bash build/package_linux.sh` puis
    `dotnet publish src/Abx2t.csproj -c Release -r linux-x64` (voir
    [src/README.md](src/README.md) pour le detail NativeAOT).
 
@@ -112,10 +113,8 @@ AbX2T is not affiliated with, endorsed by, or sponsored by Ascensio System SIA /
 
 ### Current distribution status
 
-At this stage (development), `x2t/bin/` and `x2t/sdkjs/` (~160 MB, ONLYOFFICE binaries) are
-committed directly into this public Git repository to simplify iteration. This is compliant
-with AGPLv3 (the corresponding source code remains publicly available from ONLYOFFICE, see
-THIRD-PARTY-NOTICES.md), but it is not the intended final distribution: once the product is
-stable, only a ready-to-use executable (`Abx2t.exe`, following the current model: self-extracting
-on first run) will be offered for download to end users, via GitHub Releases, without requiring
-anyone to clone the full source repository history.
+`x2t/bin/` and `x2t/sdkjs/` (ONLYOFFICE binaries) are NOT committed to this repository:
+they are re-downloaded from the official ONLYOFFICE releases by `build/fetch_onlyoffice_*`
+(version pinned in `VERSIONS`, SHA-256 verified). End users will not need any of this:
+once the product is stable, a ready-to-use executable (`Abx2t.exe`, self-extracting on
+first run) will be offered for download via GitHub Releases.

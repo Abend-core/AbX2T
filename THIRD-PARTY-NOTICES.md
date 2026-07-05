@@ -29,7 +29,7 @@ source code, in accordance with AGPLv3 obligations (section 6, "Corresponding So
   installation or release package (see `x2t/build/scripts/sync_from_install_windows.ps1`,
   `sync_from_release.sh` and `sync_from_release_linux.sh`). **No modification** is made to these binaries or JS files: AbX2T
   only packages them and invokes them as a subprocess from its own code
-  (`convert/convert/Program.cs`).
+  (`src/Program.cs`).
 - **Corresponding source** (exact version match): ONLYOFFICE publishes the source for this
   exact version under AGPLv3, tagged `v9.4.0.129`:
   - <https://github.com/ONLYOFFICE/core/releases/tag/v9.4.0.129>

@@ -33,7 +33,7 @@ powershell -ExecutionPolicy Bypass -File x2t\build\scripts\sync_from_install_win
 Points de vigilance :
 - Le script verifie la presence des JS obligatoires avant de synchroniser.
 - `x2t/sdkjs/common/AllFonts.js` est preserve automatiquement si deja present.
-- Repackager ensuite `assets.zip` pour `Abx2t.exe` : `powershell -ExecutionPolicy Bypass -File convert\build\package_windows.ps1` (voir [convert/README.md](../../convert/README.md)).
+- Repackager ensuite `assets.zip` pour `Abx2t.exe` : `powershell -ExecutionPolicy Bypass -File build\package_windows.ps1` (voir [src/README.md](../../src/README.md)).
 
 ## DoctRenderer.config
 

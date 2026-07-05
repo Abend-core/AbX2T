@@ -25,11 +25,11 @@ Dezipper l'archive, elle ne contient qu'un seul fichier : `Abx2t.exe`.
 Au tout premier lancement, l'exe s'auto-installe (extraction des composants dans `resources\`,
 generation des polices systeme dans `allfonts\`) : aucune etape manuelle requise. Un dossier
 `custom-fonts\` est aussi cree pour deposer des polices supplementaires sans les installer sur
-le poste (voir [convert/README.md](convert/README.md) pour le detail).
+le poste (voir [src/README.md](src/README.md) pour le detail).
 
 ## Formats supportes
 
-Detail et etat des tests : [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPPORTED_FORMATS.md).
+Detail et etat des tests : [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md).
 
 - Entree : tous les formats lus par ONLYOFFICE (word/cell/slide/visio/pdf -- docx, doc, odt, xlsx,
   xls, ods, pptx, ppt, odp, pdf, html, rtf, txt, epub, vsdx, etc.)
@@ -49,14 +49,14 @@ Detail et etat des tests : [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPP
 
 | Composant | Depend de core-master ? | Notes |
 |---|---|---|
-| `Abx2t.exe` | Non | Code C# autonome, voir [convert/README.md](convert/README.md) |
+| `Abx2t.exe` | Non | Code C# autonome, voir [src/README.md](src/README.md) |
 | `allfontsgen.exe` / `allfontsgen` | Oui | Sources dans `allfontsgen/src/` copiees depuis core-master (macOS, Windows, Linux) |
 | `x2t.exe` / `x2t` | Non | Binaire pre-compile depuis ONLYOFFICE (macOS : release officielle ; Windows : install locale ; Linux : .deb officiel) |
 
 ## Demarrage macOS
 
 Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete des composants
-(x2t, sdkjs, polices), et **[convert/README.md](convert/README.md#macos)** pour builder
+(x2t, sdkjs, polices), et **[src/README.md](src/README.md#macos)** pour builder
 `Abx2t` lui-meme.
 
 1. Se procurer une release officielle ONLYOFFICE (dossier `Resources/`)
@@ -65,16 +65,16 @@ Voir **[x2t/docs/SETUP.md](x2t/docs/SETUP.md)** pour la mise en place complete d
 4. Generer les polices : `zsh build/scripts/generate_macos.sh`
 5. `cp allfontsgen/output/macos-arm64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
 6. Tester le moteur seul : `zsh x2t/build/scripts/convert.sh /chemin/document.docx /chemin/sortie.pdf`
-7. Builder l'exe `Abx2t` distribuable : `zsh convert/build/package_macos.sh` puis
-   `dotnet publish convert/convert/convert.csproj -c Release -r osx-arm64` (voir
-   [convert/README.md](convert/README.md) pour le detail NativeAOT).
+7. Builder l'exe `Abx2t` distribuable : `zsh build/package_macos.sh` puis
+   `dotnet publish src/Abx2t.csproj -c Release -r osx-arm64` (voir
+   [src/README.md](src/README.md) pour le detail NativeAOT).
 
 ## Demarrage Linux
 
 Meme pipeline que Windows/macOS : les binaires x2t Linux viennent du `.deb` officiel
 ONLYOFFICE Desktop Editors (l'exe final `Abx2t` ne depend que de la glibc — il tourne sur
 n'importe quelle distro et dans une image conteneur distroless, voir
-[convert/README.md](convert/README.md#linux)).
+[src/README.md](src/README.md#linux)).
 
 1. Telecharger le `.deb` officiel (version alignee sur le bundle, ici 9.4.0) :
    `https://download.onlyoffice.com/repo/debian/pool/main/o/onlyoffice-desktopeditors/onlyoffice-desktopeditors_9.4.0_amd64.deb`
@@ -82,14 +82,14 @@ n'importe quelle distro et dans une image conteneur distroless, voir
 3. Compiler allfontsgen : `cd allfontsgen && bash build/scripts/build_linux.sh`
 4. Generer les polices : `bash build/scripts/generate_linux.sh` puis
    `cp allfontsgen/output/linux-x86_64/fonts/AllFonts.js x2t/sdkjs/common/AllFonts.js`
-5. Builder l'exe `Abx2t` distribuable : `bash convert/build/package_linux.sh` puis
-   `dotnet publish convert/convert/convert.csproj -c Release -r linux-x64` (voir
-   [convert/README.md](convert/README.md) pour le detail NativeAOT).
+5. Builder l'exe `Abx2t` distribuable : `bash build/package_linux.sh` puis
+   `dotnet publish src/Abx2t.csproj -c Release -r linux-x64` (voir
+   [src/README.md](src/README.md) pour le detail NativeAOT).
 
 ## Documentation
 
-- [convert/README.md](convert/README.md) : usage et architecture de `Abx2t.exe`
-- [convert/docs/SUPPORTED_FORMATS.md](convert/docs/SUPPORTED_FORMATS.md) : formats acceptes, ce qui est teste
+- [src/README.md](src/README.md) : usage et architecture de `Abx2t.exe`
+- [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md) : formats acceptes, ce qui est teste
 - [allfontsgen/docs/INDEX.md](allfontsgen/docs/INDEX.md)
 - [allfontsgen/docs/USAGE.md](allfontsgen/docs/USAGE.md)
 - [allfontsgen/docs/MAINTENANCE.md](allfontsgen/docs/MAINTENANCE.md)

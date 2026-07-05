@@ -5,7 +5,7 @@
 # assets.zip, unchanged. See /THIRD-PARTY-NOTICES.md.
 #
 # Linux equivalent of package_windows.ps1 / package_macos.sh. Assembles
-# convert/convert/assets.zip (resource embedded in Abx2t), gathering x2t + its .so
+# src/assets.zip (resource embedded in Abx2t), gathering x2t + its .so
 # libraries + ICU data + the full x2t/sdkjs/ tree (from x2t/bin/linux-x86_64/ and
 # x2t/sdkjs/, populated by x2t/build/scripts/sync_from_release_linux.sh) and allfontsgen
 # (from allfontsgen/build/bin/linux-x86_64/, compiled by
@@ -16,19 +16,18 @@
 # (and Program.cs re-chmods x2t/allfontsgen as a belt-and-braces measure), so the
 # executables come out runnable without any manual step.
 #
-# Usage: bash convert/build/package_linux.sh
+# Usage: bash build/package_linux.sh
 #
 # Prerequisite: run x2t/build/scripts/sync_from_release_linux.sh at least once.
 
 set -euo pipefail
 
-convert_root=$(cd -- "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-repo=$(cd -- "$convert_root/.." && pwd)
+repo=$(cd -- "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 x2t_bin="$repo/x2t/bin/linux-x86_64"
 sdkjs_src="$repo/x2t/sdkjs"
 allfontsgen="$repo/allfontsgen/build/bin/linux-x86_64/allfontsgen"
-assets_zip="$convert_root/convert/assets.zip"
+assets_zip="$repo/src/assets.zip"
 
 [[ -f "$x2t_bin/x2t" ]] || { echo "x2t not found in $x2t_bin -- run x2t/build/scripts/sync_from_release_linux.sh first" >&2; exit 1; }
 [[ -d "$sdkjs_src" ]] || { echo "sdkjs not found in $sdkjs_src -- run x2t/build/scripts/sync_from_release_linux.sh first" >&2; exit 1; }
@@ -39,7 +38,7 @@ if [[ ! -f "$allfontsgen" ]]; then
   [[ -f "$allfontsgen" ]] || { echo "Failed to compile allfontsgen" >&2; exit 1; }
 fi
 
-stage=$(mktemp -d "$convert_root/.package_linux.XXXXXX")
+stage=$(mktemp -d "${TMPDIR:-/tmp}/abx2t_package_linux.XXXXXX")
 trap 'rm -rf "$stage"' EXIT
 
 cp "$x2t_bin/x2t" "$stage/"
@@ -91,4 +90,4 @@ PY
 
 echo ""
 echo "OK: $assets_zip ($(du -h "$assets_zip" | cut -f1))"
-echo "Next step: dotnet publish convert/convert/convert.csproj -c Release -r linux-x64"
+echo "Next step: dotnet publish src/Abx2t.csproj -c Release -r linux-x64"

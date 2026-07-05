@@ -5,7 +5,7 @@ DLL, verifie incompressible -- un seul DLL manquant fait planter x2t.exe au dema
 statique Windows, pas de plugin a la demande) et `x2t/sdkjs/` complet (common, word, cell, slide,
 visio, pdf, vendor). Pas d'edition allegee : le poids des DLL domine largement celui du JS, donc
 retirer des modules sdkjs ne changeait quasiment rien a la taille finale (voir historique de
-`convert/build/package_windows.ps1`).
+`build/package_windows.ps1`).
 
 Les listes ci-dessous (`Program.cs`, constantes `InputExtensions`/`OutputExtensions`) viennent de
 `core-master/Common/OfficeFileFormats.h`, la table officielle des formats ONLYOFFICE, restreinte

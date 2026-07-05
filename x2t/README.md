@@ -22,7 +22,7 @@ x2t/
 │   └── MAINTENANCE.md    Mise a jour depuis upstream
 ├── sdkjs/                Runtime JS complet : common, word, cell, slide, visio, pdf, vendor
 │                         (commite, ~50 Mo), embarque integralement par
-│                         convert/build/package_windows.ps1 (voir convert/docs/SUPPORTED_FORMATS.md)
+│                         build/package_windows.ps1 (voir docs/SUPPORTED_FORMATS.md)
 └── test/
     └── config_mac.xml    Config de test pour la conversion docx→pdf
 ```

@@ -18,12 +18,8 @@
 /allfontsgen/output/
 /allfontsgen/test/*.pdf
 
-# convert : binaires et artefacts de build
-/convert/out/
-/convert/out_final/
-/convert/convert/bin/
-/convert/convert/obj/
-/convert/convert/assets.zip
-/convert-windows-x64.zip
-
-/convert/*.pdf
+# src (Abx2t) : binaires et artefacts de build
+/src/bin/
+/src/obj/
+/src/assets.zip
+/src/*.pdf

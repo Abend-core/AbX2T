@@ -20,7 +20,7 @@ zsh x2t/build/scripts/convert.sh /chemin/absolu/vers/document.docx /chemin/absol
 .\Abx2t.exe "rapport.docx" "rapport.pdf"
 ```
 
-`Abx2t.exe` est le point d'entree recommande sur Windows (voir [convert/README.md](../../convert/README.md)).
+`Abx2t.exe` est le point d'entree recommande sur Windows (voir [src/README.md](../../src/README.md)).
 Il s'auto-installe au premier lancement, genere le XML de config en coulisse, lance x2t.exe, et
 nettoie apres lui.
 

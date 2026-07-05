@@ -5,7 +5,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-Assembles convert/convert/assets.zip (resource embedded in Abx2t.exe).
+Assembles src/assets.zip (resource embedded in Abx2t.exe).
 
 .DESCRIPTION
 Gathers x2t.exe + all DLLs (x2t.exe statically imports them at startup, none can be
@@ -13,25 +13,24 @@ removed without recompiling) + the full x2t/sdkjs/ tree (common, word, cell, sli
 pdf, vendor) (from x2t/bin/windows-x86_64/ and x2t/sdkjs/, populated by
 x2t/build/scripts/sync_from_install_windows.ps1) and allfontsgen.exe (from
 allfontsgen/build/bin/windows-x86_64/, compiled by allfontsgen/build/scripts/build_windows.ps1
-if missing) into convert/convert/assets.zip. This zip is automatically extracted by Abx2t.exe
-into a resources/ folder on first run (see convert/convert/Program.cs).
+if missing) into src/assets.zip. This zip is automatically extracted by Abx2t.exe
+into a resources/ folder on first run (see src/Program.cs).
 
 Prerequisite: run x2t/build/scripts/sync_from_install_windows.ps1 at least once.
 
 .EXAMPLE
-powershell -ExecutionPolicy Bypass -File convert\build\package_windows.ps1
+powershell -ExecutionPolicy Bypass -File build\package_windows.ps1
 #>
 param()
 
 $ErrorActionPreference = 'Stop'
 
-$convertRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$repo        = (Resolve-Path (Join-Path $convertRoot '..')).Path
+$repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 
 $x2tBin       = Join-Path $repo 'x2t\bin\windows-x86_64'
 $sdkjsSrc     = Join-Path $repo 'x2t\sdkjs'
 $allfontsgen  = Join-Path $repo 'allfontsgen\build\bin\windows-x86_64\allfontsgen.exe'
-$assetsZip    = Join-Path $convertRoot 'convert\assets.zip'
+$assetsZip    = Join-Path $repo 'src\assets.zip'
 
 if (-not (Test-Path (Join-Path $x2tBin 'x2t.exe'))) {
     Write-Error "x2t.exe not found in $x2tBin -- run x2t\build\scripts\sync_from_install_windows.ps1 first"
@@ -48,7 +47,7 @@ if (-not (Test-Path $allfontsgen)) {
     }
 }
 
-$stage = Join-Path $convertRoot ".package_$([guid]::NewGuid().ToString('N'))"
+$stage = Join-Path $env:TEMP "abx2t_package_$([guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
 try {
@@ -82,4 +81,4 @@ finally {
 
 Write-Host ""
 Write-Host "OK: $assetsZip"
-Write-Host "Next step: dotnet publish convert\convert\convert.csproj -c Release"
+Write-Host "Next step: dotnet publish src\Abx2t.csproj -c Release"

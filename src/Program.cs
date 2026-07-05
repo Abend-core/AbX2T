@@ -218,7 +218,7 @@ available in the source repository.";
         try
         {
             using Stream? zip = Assembly.GetExecutingAssembly()
-                .GetManifestResourceStream("convert.assets.zip");
+                .GetManifestResourceStream("assets.zip");
             if (zip == null)
             {
                 Console.Error.WriteLine("Error: assets.zip not found inside the executable");

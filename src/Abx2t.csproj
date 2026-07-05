@@ -30,7 +30,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="assets.zip" />
+    <!-- LogicalName pins the resource name regardless of project/namespace renames
+         (default would be "<RootNamespace>.assets.zip"); Program.cs reads it by this name. -->
+    <EmbeddedResource Include="assets.zip" LogicalName="assets.zip" />
   </ItemGroup>
 
 </Project>

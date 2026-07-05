@@ -1,7 +1,7 @@
 # convert
 
 Wrapper autonome (`Abx2t`) pour convertir des documents via `x2t` (ONLYOFFICE), Windows, macOS et Linux.
-Formats acceptes en entree/sortie : voir [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md).
+Formats acceptes en entree/sortie : voir [docs/SUPPORTED_FORMATS.md](../docs/SUPPORTED_FORMATS.md).
 
 ## Usage
 
@@ -54,34 +54,34 @@ de l'exe ni du fichier de sortie.
 
 ## Reconstruire assets.zip (mainteneurs)
 
-`assets.zip` (`convert/convert/assets.zip`, ressource embarquee par `convert.csproj`) n'est pas
+`assets.zip` (`src/assets.zip`, ressource embarquee par `convert.csproj`) n'est pas
 versionne. Pour le reconstruire :
 
 ### Windows
 
 ```powershell
 # 1. Recuperer x2t.exe + DLLs + sdkjs depuis une install ONLYOFFICE Desktop locale
-powershell -ExecutionPolicy Bypass -File ..\x2t\build\scripts\sync_from_install_windows.ps1
+powershell -ExecutionPolicy Bypass -File x2t\build\scripts\sync_from_install_windows.ps1
 
 # 2. Assembler assets.zip (compile allfontsgen.exe si absent)
 powershell -ExecutionPolicy Bypass -File build\package_windows.ps1
 
 # 3. Builder Abx2t.exe (NativeAOT : necessite la toolchain C++ de l'OS, voir ci-dessous)
-dotnet publish convert\convert.csproj -c Release
+dotnet publish src\Abx2t.csproj -c Release
 ```
 
 ### macOS
 
 ```sh
 # 1. Recuperer x2t + frameworks + sdkjs depuis une release officielle ONLYOFFICE
-zsh ../x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources
+zsh x2t/build/scripts/sync_from_release.sh /chemin/vers/Resources
 
 # 2. Assembler assets.zip (compile allfontsgen si absent ; utilise ditto pour preserver
 #    les symlinks des .framework -- voir Architecture ci-dessous)
 zsh build/package_macos.sh
 
 # 3. Builder Abx2t (NativeAOT osx-arm64)
-dotnet publish convert/convert.csproj -c Release -r osx-arm64
+dotnet publish src/Abx2t.csproj -c Release -r osx-arm64
 ```
 
 ### Linux
@@ -90,14 +90,14 @@ dotnet publish convert/convert.csproj -c Release -r osx-arm64
 # 1. Recuperer x2t + .so + sdkjs depuis le .deb officiel ONLYOFFICE Desktop Editors
 #    (version alignee sur le bundle : onlyoffice-desktopeditors_9.4.0_amd64.deb, depuis
 #     https://download.onlyoffice.com/repo/debian/pool/main/o/onlyoffice-desktopeditors/)
-bash ../x2t/build/scripts/sync_from_release_linux.sh /chemin/vers/onlyoffice-desktopeditors_9.4.0_amd64.deb
+bash x2t/build/scripts/sync_from_release_linux.sh /chemin/vers/onlyoffice-desktopeditors_9.4.0_amd64.deb
 
 # 2. Assembler assets.zip (compile allfontsgen si absent ; zip construit en preservant
 #    les bits executables, restaures par .NET a l'extraction)
 bash build/package_linux.sh
 
 # 3. Builder Abx2t (NativeAOT linux-x64 ; ajouter -p:CppCompilerAndLinker=gcc si clang absent)
-dotnet publish convert/convert.csproj -c Release -r linux-x64
+dotnet publish src/Abx2t.csproj -c Release -r linux-x64
 ```
 
 L'exe produit ne depend que de la glibc : x2t resout ses `.so` via son RPATH `$ORIGIN`
@@ -129,33 +129,33 @@ Sur Windows, si la detection automatique de MSVC echoue (`'vswhere.exe' n'est pa
 lancer le publish depuis un environnement Developer :
 
 ```powershell
-cmd /c '"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" && dotnet publish convert\convert.csproj -c Release -p:IlcUseEnvironmentalTools=true'
+cmd /c '"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" && dotnet publish src\Abx2t.csproj -c Release -p:IlcUseEnvironmentalTools=true'
 ```
 
-(vcvars definit `Platform=x64` : la sortie va alors dans `convert\bin\x64\Release\...\publish\`.)
+(vcvars definit `Platform=x64` : la sortie va alors dans `src\bin\x64\Release\...\publish\`.)
 
 Sans toolchain native disponible, fallback single-file JIT compresse (~97 Mo) :
 
 ```powershell
-dotnet publish convert\convert.csproj -c Release -p:PublishAot=false
+dotnet publish src\Abx2t.csproj -c Release -p:PublishAot=false
 ```
 
 ## Architecture
 
-- `convert/convert/Program.cs` : logique C# cross-plateforme (validation des formats,
+- `src/Program.cs` : logique C# cross-plateforme (validation des formats,
   extraction, generation des polices, appel x2t, staging reseau). Detection d'OS pour le nom
   des binaires (`x2t`/`x2t.exe`, `allfontsgen`/`allfontsgen.exe`). Sur macOS, extraction de
   `assets.zip` via `ditto` plutot que `System.IO.Compression.ZipArchive`, qui ne restaure pas
   les symlinks des `.framework` (`Versions/Current -> A`) et casserait leur resolution par dyld.
-- `convert/convert/convert.csproj` : `AssemblyName` = `Abx2t`, publish NativeAOT (exe natif
+- `src/Abx2t.csproj` : `AssemblyName` = `Abx2t`, publish NativeAOT (exe natif
   unique, RID par defaut selon l'OS de build : `win-x64`/`osx-arm64`/`linux-x64`).
-- `convert/build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
+- `build/package_windows.ps1` : assemble `assets.zip` a partir de `x2t/bin/windows-x86_64/`
   (integral, voir docs/SUPPORTED_FORMATS.md) + `x2t/sdkjs/` (integral) +
   `allfontsgen/build/bin/windows-x86_64/allfontsgen.exe` + les textes de licence (`LICENSE`,
   `THIRD-PARTY-NOTICES.md`), extraits dans `resources\` au premier lancement pour que la
-  distribution mono-exe reste autonome juridiquement. `convert/build/package_macos.sh` est
+  distribution mono-exe reste autonome juridiquement. `build/package_macos.sh` est
   l'equivalent macOS (`x2t/bin/macos-arm64/`, `allfontsgen/build/bin/macos-arm64/`), assemble
   avec `ditto` (pas `zip`) pour preserver les symlinks des `.framework` a travers l'archive.
-  `convert/build/package_linux.sh` est l'equivalent Linux (`x2t/bin/linux-x86_64/`,
+  `build/package_linux.sh` est l'equivalent Linux (`x2t/bin/linux-x86_64/`,
   `allfontsgen/build/bin/linux-x86_64/`), zip construit via python3 en stockant les modes
   Unix (bits executables restaures a l'extraction, et re-chmod par Program.cs par securite).

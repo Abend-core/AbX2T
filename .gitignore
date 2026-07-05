@@ -23,3 +23,6 @@
 /src/obj/
 /src/assets.zip
 /src/*.pdf
+
+# cache de telechargement des releases ONLYOFFICE (fetch_onlyoffice_*)
+/build/cache/

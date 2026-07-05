@@ -2,6 +2,9 @@
 /sdkjs-master
 .DS_Store
 
+# dossiers generes a la racine (deja commite par accident une fois : a94d88f)
+/output/
+
 # x2t : contenu genere par les scripts de sync
 /x2t/src/
 /x2t/output/

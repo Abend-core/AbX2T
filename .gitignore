@@ -33,3 +33,6 @@
 
 # PDF generes de la documentation
 /docs/PDF/
+
+# artefacts de distribution CI
+/dist/

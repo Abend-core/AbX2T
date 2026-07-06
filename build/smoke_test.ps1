@@ -81,3 +81,6 @@ if ((Run (Join-Path $out 'missing.docx') (Join-Path $out 'x.pdf') 2>$null) -ne 1
 Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host ''
 Write-Host 'SMOKE TEST OK' -ForegroundColor Green
+# Without this, pwsh propagates the $LASTEXITCODE of the last native command --
+# which is the expected-failure check above (1) -- as the script exit code.
+exit 0

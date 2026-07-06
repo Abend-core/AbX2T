@@ -28,4 +28,4 @@ Basé sur le moteur de conversion ONLYOFFICE (x2t)
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

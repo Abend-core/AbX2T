@@ -93,4 +93,4 @@ pour utiliser ou packager Abx2t si `allfontsgen/build/bin/` existe déjà.
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

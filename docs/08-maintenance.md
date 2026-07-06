@@ -80,4 +80,4 @@ production des exécutables (l'AOT ne cross-compile pas).
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

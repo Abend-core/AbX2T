@@ -142,4 +142,4 @@ locaux, eux, sont convertis sur place, sans copie intermédiaire.
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

@@ -47,4 +47,4 @@ d'archive custom pour gagner quelques Mo.
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

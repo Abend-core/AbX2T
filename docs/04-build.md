@@ -120,4 +120,4 @@ Les scripts vérifient la présence des JS obligatoires avant d'écrire, préser
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

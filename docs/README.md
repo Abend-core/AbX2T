@@ -39,4 +39,4 @@ une distribution LaTeX). Sans pandoc, le script explique quoi installer.
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

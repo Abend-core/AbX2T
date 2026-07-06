@@ -120,4 +120,4 @@ sans rebuild complet. Aucune version n'est codée en dur dans le code.
 
 ---
 
-*Documentation à jour au commit `b3ddb7b`.*
+*Documentation à jour au commit `1fe36b8`.*

@@ -40,10 +40,13 @@ if ($ExePath) {
     if (-not (Test-Path $ExePath)) { Fail "executable not found: $ExePath" }
     Copy-Item $ExePath (Join-Path $out 'Abx2t.exe')
     $runner = Join-Path $out 'Abx2t.exe'
-    function Run { & $runner @args; return $LASTEXITCODE }
+    # Out-Host keeps the program output visible without polluting the function's
+    # return stream: Run must return ONLY the exit code (a bare `& $runner` would
+    # make the function return an array of output lines + code, breaking -ne 0).
+    function Run { & $runner @args | Out-Host; return $LASTEXITCODE }
 } else {
     if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { Fail 'dotnet not found (pass -ExePath instead)' }
-    function Run { & dotnet run --project (Join-Path $repo 'src') -c Release -- @args; return $LASTEXITCODE }
+    function Run { & dotnet run --project (Join-Path $repo 'src') -c Release -- @args | Out-Host; return $LASTEXITCODE }
 }
 
 Write-Host '== --version'

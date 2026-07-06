@@ -14,6 +14,10 @@ Pipeline complet, identique sur les trois OS :
 Les étapes 2–3 ne sont nécessaires qu'une fois par machine (ou après une montée de
 version) : le binaire `allfontsgen` produit est réutilisé par les packagings suivants.
 
+Ce pipeline tourne aussi en CI sur les trois OS à chaque push (et alimente les releases
+sur les tags `v*`) : voir [08-maintenance.md](08-maintenance.md#ci). Pour builder à la
+main, suivre les sections ci-dessous.
+
 ## Prérequis
 
 | | Windows x86_64 | macOS arm64 | Linux x86_64 |

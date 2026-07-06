@@ -58,13 +58,19 @@ jamais accumule des CVE connues :
 - La documentation vit dans `docs/` uniquement ; chaque fichier se termine par le
   commit auquel il est à jour — le mettre à jour à chaque passe de doc.
 
+## CI
+
+`.github/workflows/build.yml` : un job par plateforme (windows/macos/ubuntu) qui
+déroule le pipeline complet de [04-build.md](04-build.md) — fetch ONLYOFFICE
+(téléchargement mis en cache, clé = hash de `VERSIONS`), packaging (compile
+allfontsgen depuis les sources vendored si absent), publish NativeAOT, smoke test
+sur l'exe publié, zip + SHA-256 en artefact. Déclenchée sur push main, PR, tag `v*`
+et manuellement (`workflow_dispatch`). **Sur un tag `v*`, les artefacts des trois
+plateformes sont attachés automatiquement à la GitHub release** — c'est le canal de
+production des exécutables (l'AOT ne cross-compile pas).
+
 ## Chantiers futurs identifiés
 
-- **CI GitHub Actions** (3 jobs windows/macos/ubuntu) : compiler allfontsgen, assembler
-  assets.zip, publier en NativeAOT, dérouler le smoke test — lève la contrainte « l'AOT
-  ne cross-compile pas » et produit les artefacts de release.
-- **Mode batch** : plusieurs sources / glob en un lancement, 2–4 conversions x2t en
-  parallèle.
 - **Linux sans glibc (musl/Alpine)** : la voie réaliste est `gcompat` (shim glibc sur
   Alpine) — recompiler x2t en musl serait un chantier énorme, et le plancher glibc 2.34
   vient du runtime .NET lui-même.

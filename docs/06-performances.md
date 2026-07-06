@@ -37,10 +37,13 @@ d'archive custom pour gagner quelques Mo.
   partage SMB.
 - **Overhead du wrapper** (parsing, config XML, spawn du process) : millisecondes,
   négligeable devant x2t.
-- **Parallélisme** : chaque instance Abx2t est indépendante (dossier de travail
-  dédié) ; lancer plusieurs conversions en parallèle fonctionne et multiplie le débit
-  sur les lots. Seule la préparation initiale (premier lancement) est sérialisée par
-  le verrou.
+- **Lots de fichiers** : le mode batch (`--to <ext> <sources...> <dossier>`) convertit
+  en parallèle (2-4 x2t simultanés par défaut, `--jobs` pour ajuster) en un seul
+  lancement — préférer ça à une boucle shell qui repaie le démarrage d'Abx2t à chaque
+  fichier. Au-delà de ~4 jobs, le disque et la mémoire saturent avant le CPU.
+- **Parallélisme externe** : chaque instance Abx2t reste indépendante (dossier de
+  travail dédié) ; en lancer plusieurs fonctionne aussi. Seule la préparation initiale
+  (premier lancement) est sérialisée par le verrou.
 
 ---
 

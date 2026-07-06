@@ -44,6 +44,13 @@ echo "== docx -> txt"
 run --timeout 10 "$sample" "$out/sample.txt" || fail "docx->txt conversion exited with $?"
 grep -q "quick brown fox" "$out/sample.txt" || fail "converted text does not contain the sample sentence"
 
+echo "== batch mode"
+mkdir -p "$out/batch_in" "$out/batch_out"
+cp "$sample" "$out/batch_in/a.docx"
+cp "$sample" "$out/batch_in/b.docx"
+run --to pdf --jobs 2 "$out/batch_in/a.docx" "$out/batch_in/b.docx" "$out/batch_out" || fail "batch conversion exited with $?"
+[[ -f "$out/batch_out/a.pdf" && -f "$out/batch_out/b.pdf" ]] || fail "batch outputs missing"
+
 echo "== error paths"
 run "$sample" "$sample" >/dev/null 2>&1 && fail "source==output should be refused"
 [[ $? -eq 1 ]] || fail "source==output should exit 1"

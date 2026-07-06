@@ -29,22 +29,30 @@ Si le dossier de l'exécutable n'est pas inscriptible (`C:\Program Files`,
 
 ```
 Abx2t [options] <source> <sortie>
+Abx2t [options] --to <ext> <sources...> <dossier_sortie>
 ```
 
-Le format est déduit des extensions. Exemples :
+Le format est déduit des extensions (ou de `--to` en mode batch). Exemples :
 
 ```powershell
 .\Abx2t.exe rapport.docx rapport.pdf
 .\Abx2t.exe classeur.xlsx donnees.csv
 .\Abx2t.exe presentation.pptx presentation.odp
 .\Abx2t.exe "\\serveur\partage\entrant.docx" "\\serveur\partage\sorti.pdf"
+
+# Batch : plusieurs sources (wildcards acceptés, meme sous cmd/PowerShell)
+# converties en parallèle vers un dossier, chacune sous son propre nom
+.\Abx2t.exe --to pdf *.docx sortie\
+.\Abx2t.exe --to pdf --jobs 4 rapport.docx classeur.xlsx sortie\
 ```
 
 ### Options
 
 | Option | Effet |
 |---|---|
-| `--timeout <minutes>` | Durée maximale de la conversion (défaut : 30 ; `0` = illimité) |
+| `--to <ext>` | Mode batch : format de sortie ; chaque source est convertie dans le dossier cible sous son propre nom |
+| `--jobs <n>` | Mode batch : conversions en parallèle (défaut : 2 à 4 selon le CPU) |
+| `--timeout <minutes>` | Durée maximale de la conversion, par fichier (défaut : 30 ; `0` = illimité) |
 | `--verbose` | Affiche la sortie de x2t même quand la conversion réussit |
 | `--version` | Version d'Abx2t et du bundle ONLYOFFICE embarqué |
 | `--license` | Licence AGPLv3 et attribution ONLYOFFICE |
@@ -58,6 +66,11 @@ Le format est déduit des extensions. Exemples :
 | 1 | Erreur d'usage ou du wrapper (fichier introuvable, format refusé, source = sortie…) |
 | 2 | Erreur du moteur x2t (fichier corrompu, conversion impossible) |
 | 3 | Timeout dépassé (x2t a été tué) |
+
+En mode batch, chaque fichier est converti indépendamment : un résumé
+(`Done: X/Y succeeded`) est affiché et le code retour est le pire code rencontré
+(0 seulement si toutes les conversions ont réussi). Deux sources qui produiraient le
+même fichier de sortie (même nom de base) sont refusées d'emblée.
 
 ## Formats supportés
 

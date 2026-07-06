@@ -10,6 +10,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 class Program
@@ -79,11 +80,15 @@ available in the source repository.";
     static void PrintUsage(TextWriter w)
     {
         w.WriteLine($"Usage: {ProgName} [options] <source> <output>");
+        w.WriteLine($"       {ProgName} [options] --to <ext> <sources...> <output_dir>");
         w.WriteLine($"  Accepted input  : .{string.Join(", .", InputExtensions)}");
         w.WriteLine($"  Accepted output : .{string.Join(", .", OutputExtensions)}");
         w.WriteLine();
         w.WriteLine("Options:");
-        w.WriteLine("  --timeout <minutes>  Maximum conversion time (default: 30, 0 = no limit)");
+        w.WriteLine("  --to <ext>           Batch mode: output format; each source is converted");
+        w.WriteLine("                       into <output_dir> under its own name (wildcards accepted)");
+        w.WriteLine("  --jobs <n>           Batch mode: parallel conversions (default: 2-4, from CPU count)");
+        w.WriteLine("  --timeout <minutes>  Maximum conversion time per file (default: 30, 0 = no limit)");
         w.WriteLine("  --verbose            Print x2t output even when the conversion succeeds");
         w.WriteLine("  --version            Print the Abx2t / ONLYOFFICE bundle version");
         w.WriteLine("  --license            AGPLv3 license and ONLYOFFICE attribution");
@@ -97,6 +102,8 @@ available in the source repository.";
         var positional = new List<string>();
         bool verbose = false;
         int timeoutMinutes = 30;
+        string? toExt = null;
+        int jobs = 0;   // 0 = auto (2-4 from CPU count)
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -121,6 +128,21 @@ available in the source repository.";
                         return 1;
                     }
                     break;
+                case "--to":
+                    if (i + 1 >= args.Length)
+                    {
+                        Console.Error.WriteLine("Error: --to expects an output extension (e.g. --to pdf)");
+                        return 1;
+                    }
+                    toExt = args[++i].ToLowerInvariant().TrimStart('.');
+                    break;
+                case "--jobs":
+                    if (i + 1 >= args.Length || !int.TryParse(args[++i], out jobs) || jobs < 1 || jobs > 16)
+                    {
+                        Console.Error.WriteLine("Error: --jobs expects a number between 1 and 16");
+                        return 1;
+                    }
+                    break;
                 default:
                     if (args[i].StartsWith('-'))
                     {
@@ -132,44 +154,97 @@ available in the source repository.";
             }
         }
 
-        if (positional.Count != 2)
+        if (positional.Count < 2)
         {
             PrintUsage(Console.Error);
             return 1;
         }
 
-        string input  = Path.GetFullPath(positional[0]);
-        string output = Path.GetFullPath(positional[1]);
+        // Windows shells pass wildcards through unexpanded; expand them ourselves
+        // (no-op on Unix, where the shell already did it).
+        var sources = ExpandSources(positional.GetRange(0, positional.Count - 1));
+        if (sources == null) return 1;
+        string outputArg = positional[^1];
 
-        if (!File.Exists(input))
+        // Batch mode: several sources converted into one target directory. A directory
+        // has no extension, so --to provides the output format.
+        bool batch = sources.Count > 1 || toExt != null || Directory.Exists(outputArg);
+
+        foreach (string src in sources)
         {
-            Console.Error.WriteLine($"Error: source file not found: {input}");
-            return 1;
+            if (!File.Exists(src))
+            {
+                Console.Error.WriteLine($"Error: source file not found: {src}");
+                return 1;
+            }
+            string ext = Path.GetExtension(src).ToLowerInvariant().TrimStart('.');
+            if (Array.IndexOf(InputExtensions, ext) < 0)
+            {
+                Console.Error.WriteLine($"Error: unsupported input format (.{ext}) for {src}. " +
+                                         $"Accepted formats: .{string.Join(", .", InputExtensions)}");
+                return 1;
+            }
         }
 
-        // Refuse converting a file onto itself: the source would be overwritten by its
-        // own reconversion. Filesystems are case-insensitive on Windows/macOS.
-        if (string.Equals(input, output,
-                OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+        var pairs = new List<(string Input, string Output)>();
+        if (batch)
         {
-            Console.Error.WriteLine("Error: source and output are the same file");
-            return 1;
+            if (toExt == null)
+            {
+                Console.Error.WriteLine("Error: batch mode (several sources, or a directory as output) requires --to <ext>");
+                return 1;
+            }
+            if (Array.IndexOf(OutputExtensions, toExt) < 0)
+            {
+                Console.Error.WriteLine($"Error: unsupported output format (.{toExt}). " +
+                                         $"Accepted formats: .{string.Join(", .", OutputExtensions)}");
+                return 1;
+            }
+            string outDir = Path.GetFullPath(outputArg);
+            Directory.CreateDirectory(outDir);
+            // Two sources with the same base name would silently overwrite each other.
+            var claimedBy = new Dictionary<string, string>(
+                OperatingSystem.IsLinux() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+            foreach (string src in sources)
+            {
+                string dest = Path.Combine(outDir, Path.GetFileNameWithoutExtension(src) + "." + toExt);
+                if (claimedBy.TryGetValue(dest, out string? other))
+                {
+                    Console.Error.WriteLine($"Error: {src} and {other} would both produce {dest}");
+                    return 1;
+                }
+                claimedBy[dest] = src;
+                string fullSrc = Path.GetFullPath(src);
+                if (PathsEqual(fullSrc, dest))
+                {
+                    Console.Error.WriteLine($"Error: source and output are the same file: {src}");
+                    return 1;
+                }
+                pairs.Add((fullSrc, dest));
+            }
         }
-
-        string inputExt = Path.GetExtension(input).ToLowerInvariant().TrimStart('.');
-        if (Array.IndexOf(InputExtensions, inputExt) < 0)
+        else
         {
-            Console.Error.WriteLine($"Error: unsupported input format (.{inputExt}). " +
-                                     $"Accepted formats: .{string.Join(", .", InputExtensions)}");
-            return 1;
-        }
-
-        string outputExt = Path.GetExtension(output).ToLowerInvariant().TrimStart('.');
-        if (Array.IndexOf(OutputExtensions, outputExt) < 0)
-        {
-            Console.Error.WriteLine($"Error: unsupported output format (.{outputExt}). " +
-                                     $"Accepted formats: .{string.Join(", .", OutputExtensions)}");
-            return 1;
+            string input  = Path.GetFullPath(sources[0]);
+            string output = Path.GetFullPath(outputArg);
+            // Refuse converting a file onto itself: the source would be overwritten by
+            // its own reconversion.
+            if (PathsEqual(input, output))
+            {
+                Console.Error.WriteLine("Error: source and output are the same file");
+                return 1;
+            }
+            string outputExt = Path.GetExtension(output).ToLowerInvariant().TrimStart('.');
+            if (Array.IndexOf(OutputExtensions, outputExt) < 0)
+            {
+                Console.Error.WriteLine($"Error: unsupported output format (.{outputExt}). " +
+                                         $"Accepted formats: .{string.Join(", .", OutputExtensions)}");
+                return 1;
+            }
+            string? outputDir = Path.GetDirectoryName(output);
+            if (!string.IsNullOrEmpty(outputDir))
+                Directory.CreateDirectory(outputDir);
+            pairs.Add((input, output));
         }
 
         string baseDir        = ResolveBaseDir(AppContext.BaseDirectory);
@@ -191,9 +266,82 @@ available in the source repository.";
         }
 
         string sdkjsDir = Path.Combine(resourcesDir, "sdkjs");
-        string? outputDir = Path.GetDirectoryName(output);
-        if (!string.IsNullOrEmpty(outputDir))
-            Directory.CreateDirectory(outputDir);
+
+        if (pairs.Count == 1)
+            return ConvertOne(x2tPath, resourcesDir, sdkjsDir, allFonts, allfontsDir,
+                              pairs[0].Input, pairs[0].Output, timeoutMinutes, verbose, label: "");
+
+        // Batch: a few x2t in parallel (each conversion is independent, own work dir).
+        // More than ~4 mostly thrashes disk and memory for no throughput gain.
+        if (jobs == 0) jobs = Math.Clamp(Environment.ProcessorCount / 2, 2, 4);
+        Console.WriteLine($"Converting {pairs.Count} files to .{toExt} ({jobs} parallel jobs)...");
+        var codes = new int[pairs.Count];
+        Parallel.For(0, pairs.Count, new ParallelOptions { MaxDegreeOfParallelism = jobs }, i =>
+        {
+            codes[i] = ConvertOne(x2tPath, resourcesDir, sdkjsDir, allFonts, allfontsDir,
+                                  pairs[i].Input, pairs[i].Output, timeoutMinutes, verbose,
+                                  label: $"[{Path.GetFileName(pairs[i].Input)}] ");
+        });
+
+        int failed = 0, worst = 0;
+        foreach (int c in codes)
+        {
+            if (c != 0) failed++;
+            if (c > worst) worst = c;
+        }
+        Console.WriteLine(failed == 0
+            ? $"Done: {pairs.Count}/{pairs.Count} conversions succeeded."
+            : $"Done: {pairs.Count - failed}/{pairs.Count} succeeded, {failed} failed.");
+        return worst;
+    }
+
+    static bool PathsEqual(string a, string b) =>
+        string.Equals(a, b, OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+
+    // Windows shells pass wildcards through unexpanded; expand them here. Returns null
+    // (after printing the error) when a pattern matches nothing.
+    static List<string>? ExpandSources(List<string> args)
+    {
+        var result = new List<string>();
+        foreach (string a in args)
+        {
+            if (a.IndexOfAny(new[] { '*', '?' }) < 0)
+            {
+                result.Add(a);
+                continue;
+            }
+            string dir = Path.GetDirectoryName(a) is { Length: > 0 } d ? d : ".";
+            string[] matches;
+            try
+            {
+                matches = Directory.GetFiles(dir, Path.GetFileName(a));
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error: cannot expand {a}: {ex.Message}");
+                return null;
+            }
+            if (matches.Length == 0)
+            {
+                Console.Error.WriteLine($"Error: no file matches {a}");
+                return null;
+            }
+            Array.Sort(matches, StringComparer.Ordinal);
+            result.AddRange(matches);
+        }
+        return result;
+    }
+
+    // Serializes multi-line console output in batch mode (single lines interleave fine,
+    // each carries its [file] label; error dumps should not).
+    static readonly object ConsoleLock = new();
+
+    static int ConvertOne(string x2tPath, string resourcesDir, string sdkjsDir, string allFonts,
+                          string allfontsDir, string input, string output,
+                          int timeoutMinutes, bool verbose, string label)
+    {
+        string inputExt  = Path.GetExtension(input).ToLowerInvariant().TrimStart('.');
+        string outputExt = Path.GetExtension(output).ToLowerInvariant().TrimStart('.');
 
         // Work directory in the system TEMP for x2t's config and scratch files. Network
         // source/output paths (\\server\share or a mapped drive) are additionally staged
@@ -218,7 +366,7 @@ available in the source repository.";
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"Error: could not read source file ({input}): {ex.Message}");
+                    Console.Error.WriteLine($"{label}Error: could not read source file ({input}): {ex.Message}");
                     return 1;
                 }
             }
@@ -249,7 +397,7 @@ available in the source repository.";
             {
                 try { proc.Kill(entireProcessTree: true); } catch { /* already gone */ }
                 proc.WaitForExit();
-                Console.Error.WriteLine($"Error: conversion timed out after {timeoutMinutes} min " +
+                Console.Error.WriteLine($"{label}Error: conversion timed out after {timeoutMinutes} min " +
                                         "(--timeout <minutes> to adjust, 0 to disable)");
                 return 3;
             }
@@ -258,21 +406,27 @@ available in the source repository.";
 
             if (proc.ExitCode != 0)
             {
-                Console.Error.WriteLine($"x2t error (x2t exit code {proc.ExitCode})");
-                if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
-                if (!string.IsNullOrWhiteSpace(stdout)) Console.Error.WriteLine(stdout);
+                lock (ConsoleLock)
+                {
+                    Console.Error.WriteLine($"{label}x2t error (x2t exit code {proc.ExitCode})");
+                    if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
+                    if (!string.IsNullOrWhiteSpace(stdout)) Console.Error.WriteLine(stdout);
+                }
                 return 2;
             }
 
             if (verbose)
             {
-                if (!string.IsNullOrWhiteSpace(stdout)) Console.WriteLine(stdout);
-                if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
+                lock (ConsoleLock)
+                {
+                    if (!string.IsNullOrWhiteSpace(stdout)) Console.WriteLine(stdout);
+                    if (!string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(stderr);
+                }
             }
 
             if (!File.Exists(localOutput))
             {
-                Console.Error.WriteLine("Error: conversion finished but the output file is missing");
+                Console.Error.WriteLine($"{label}Error: conversion finished but the output file is missing");
                 return 2;
             }
 
@@ -284,12 +438,12 @@ available in the source repository.";
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"Error: could not write output file ({output}): {ex.Message}");
+                    Console.Error.WriteLine($"{label}Error: could not write output file ({output}): {ex.Message}");
                     return 1;
                 }
             }
 
-            Console.WriteLine($"OK: {output}");
+            Console.WriteLine($"{label}OK: {output}");
             return 0;
         }
         finally

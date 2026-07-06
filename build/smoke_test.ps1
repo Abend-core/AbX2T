@@ -62,7 +62,16 @@ $txt = Join-Path $out 'sample.txt'
 if ((Run --timeout 10 $sample $txt) -ne 0) { Fail 'docx->txt conversion failed' }
 if (-not (Select-String -Path $txt -Pattern 'quick brown fox' -Quiet)) { Fail 'converted text does not contain the sample sentence' }
 
-Write-Host '== error paths'
+Write-Host '== batch mode'
+$batchIn  = Join-Path $out 'batch_in'
+$batchOut = Join-Path $out 'batch_out'
+New-Item -ItemType Directory -Force -Path $batchIn, $batchOut | Out-Null
+Copy-Item $sample (Join-Path $batchIn 'a.docx')
+Copy-Item $sample (Join-Path $batchIn 'b.docx')
+if ((Run --to pdf --jobs 2 (Join-Path $batchIn 'a.docx') (Join-Path $batchIn 'b.docx') $batchOut) -ne 0) { Fail 'batch conversion failed' }
+if (-not ((Test-Path (Join-Path $batchOut 'a.pdf')) -and (Test-Path (Join-Path $batchOut 'b.pdf')))) { Fail 'batch outputs missing' }
+
+Write-Host '== error paths' 
 if ((Run $sample $sample 2>$null) -ne 1) { Fail 'source==output should exit 1' }
 if ((Run (Join-Path $out 'missing.docx') (Join-Path $out 'x.pdf') 2>$null) -ne 1) { Fail 'missing source should exit 1' }
 

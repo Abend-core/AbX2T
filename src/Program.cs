@@ -99,6 +99,23 @@ available in the source repository.";
 
     static int Main(string[] args)
     {
+        try
+        {
+            return Run(args);
+        }
+        catch (Exception ex)
+        {
+            // Never let an exception escape: under NativeAOT an unhandled exception
+            // becomes FailFast, which Windows reports to the user as a scary
+            // "buffer overrun detected" system dialog (seen with an invalid path
+            // argument). A clean message + exit 1 instead.
+            Console.Error.WriteLine($"Unexpected error: {ex.Message}");
+            return 1;
+        }
+    }
+
+    static int Run(string[] args)
+    {
         var positional = new List<string>();
         bool verbose = false;
         int timeoutMinutes = 30;
@@ -200,7 +217,8 @@ available in the source repository.";
                                          $"Accepted formats: .{string.Join(", .", OutputExtensions)}");
                 return 1;
             }
-            string outDir = Path.GetFullPath(outputArg);
+            string? outDir = SafeFullPath(outputArg);
+            if (outDir == null) return 1;
             Directory.CreateDirectory(outDir);
             // Two sources with the same base name would silently overwrite each other.
             var claimedBy = new Dictionary<string, string>(
@@ -214,7 +232,8 @@ available in the source repository.";
                     return 1;
                 }
                 claimedBy[dest] = src;
-                string fullSrc = Path.GetFullPath(src);
+                string? fullSrc = SafeFullPath(src);
+                if (fullSrc == null) return 1;
                 if (PathsEqual(fullSrc, dest))
                 {
                     Console.Error.WriteLine($"Error: source and output are the same file: {src}");
@@ -225,8 +244,9 @@ available in the source repository.";
         }
         else
         {
-            string input  = Path.GetFullPath(sources[0]);
-            string output = Path.GetFullPath(outputArg);
+            string? input  = SafeFullPath(sources[0]);
+            string? output = SafeFullPath(outputArg);
+            if (input == null || output == null) return 1;
             // Refuse converting a file onto itself: the source would be overwritten by
             // its own reconversion.
             if (PathsEqual(input, output))
@@ -293,6 +313,24 @@ available in the source repository.";
             ? $"Done: {pairs.Count}/{pairs.Count} conversions succeeded."
             : $"Done: {pairs.Count - failed}/{pairs.Count} succeeded, {failed} failed.");
         return worst;
+    }
+
+    // Path.GetFullPath throws on malformed paths -- e.g. a quoting typo like
+    // "file.docx" " C:\out.pdf" (leading space inside the quotes) on Windows, where
+    // path segments cannot start or end with spaces anyway: trim them there, and turn
+    // any remaining invalid path into a clean error instead of a crash.
+    static string? SafeFullPath(string arg)
+    {
+        if (OperatingSystem.IsWindows()) arg = arg.Trim();
+        try
+        {
+            return Path.GetFullPath(arg);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error: invalid path '{arg}': {ex.Message}");
+            return null;
+        }
     }
 
     static bool PathsEqual(string a, string b) =>

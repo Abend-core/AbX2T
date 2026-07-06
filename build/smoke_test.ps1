@@ -74,9 +74,17 @@ Copy-Item $sample (Join-Path $batchIn 'b.docx')
 if ((Run --to pdf --jobs 2 (Join-Path $batchIn 'a.docx') (Join-Path $batchIn 'b.docx') $batchOut) -ne 0) { Fail 'batch conversion failed' }
 if (-not ((Test-Path (Join-Path $batchOut 'a.pdf')) -and (Test-Path (Join-Path $batchOut 'b.pdf')))) { Fail 'batch outputs missing' }
 
-Write-Host '== error paths' 
+Write-Host '== error paths'
 if ((Run $sample $sample 2>$null) -ne 1) { Fail 'source==output should exit 1' }
 if ((Run (Join-Path $out 'missing.docx') (Join-Path $out 'x.pdf') 2>$null) -ne 1) { Fail 'missing source should exit 1' }
+# Regression: a quoting typo (leading space in the output path) crashed with an
+# unhandled IOException -> NativeAOT FailFast ("buffer overrun" system dialog).
+# Leading/trailing spaces are trimmed on Windows: this must now just work.
+$spaced = ' ' + (Join-Path $out 'spaced.pdf')
+if ((Run --timeout 10 $sample $spaced) -ne 0) { Fail 'leading-space output path should be trimmed and succeed' }
+if (-not (Test-Path (Join-Path $out 'spaced.pdf'))) { Fail 'spaced.pdf missing' }
+# And a genuinely invalid path must be a clean exit 1, never a crash dialog.
+if ((Run $sample 'C:\bad<>|path\out.pdf' 2>$null) -ne 1) { Fail 'invalid output path should exit 1 cleanly' }
 
 Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue
 Write-Host ''

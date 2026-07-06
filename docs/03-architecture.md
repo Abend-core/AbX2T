@@ -92,9 +92,12 @@ prochain lancement.
 
 ### Compression NTFS (Windows)
 
-Après extraction, `compact.exe /c /s /i /q` est lancé en **fire-and-forget** sur
-`resources/` : la compression NTFS est transparente (x2t lit les fichiers pendant
-qu'elle tourne), donc le premier lancement n'attend pas. Le flag du dossier est hérité :
+Après extraction, `compact.exe /c /s /i /q` est exécuté sur `resources/`,
+**en synchrone et sous le verrou de préparation** : tant que compact tient un fichier,
+celui-ci ne peut être ni exécuté ni chargé (violation de partage) — une variante
+asynchrone faisait échouer le lancement de x2t à la première conversion (attrapé par la
+CI sur un runner vierge). Coût : quelques secondes de plus, une seule fois. Le flag du
+dossier est hérité :
 les fichiers ajoutés ensuite (AllFonts.js copié dans sdkjs/common) sont compressés
 aussi. Best-effort : ignoré sans NTFS (FAT32, exFAT, partages).
 

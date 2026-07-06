@@ -383,7 +383,17 @@ available in the source repository.";
                 RedirectStandardError  = true,
             };
 
-            using var proc = Process.Start(psi)!;
+            Process proc;
+            try
+            {
+                proc = Process.Start(psi)!;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"{label}Error: could not start x2t: {ex.Message}");
+                return 1;
+            }
+            using var _ = proc;
             // Drain both pipes concurrently: reading them one after the other can deadlock
             // if x2t fills the buffer of the pipe not being read.
             var stdoutTask = proc.StandardOutput.ReadToEndAsync();
@@ -666,13 +676,15 @@ available in the source repository.";
     // the files normally. The directory flag is inherited, so files added later (AllFonts.js
     // copied into sdkjs/common) are compressed too. Best-effort: Windows only, and skipped
     // silently on filesystems without compression support (FAT32, exFAT, network shares).
-    // Fire-and-forget: the compression is transparent, x2t can read files while compact.exe
-    // is still working, so the first run does not wait the tens of seconds it can take.
+    // MUST run synchronously, inside the preparation lock: while compact.exe holds a file
+    // it cannot be executed or loaded (sharing violation) -- a fire-and-forget version
+    // raced the first conversion and broke the x2t spawn (caught by CI on a fresh runner).
     static void TryCompressResources(string dir)
     {
         if (!OperatingSystem.IsWindows()) return;
         try
         {
+            Console.WriteLine("Compressing resources (NTFS, one-time)...");
             var psi = new ProcessStartInfo
             {
                 FileName               = "compact.exe",
@@ -681,12 +693,11 @@ available in the source repository.";
                 RedirectStandardOutput = true,
                 RedirectStandardError  = true,
             };
-            var proc = Process.Start(psi);
+            using var proc = Process.Start(psi);
             if (proc == null) return;
-            // Drain the pipes without waiting, so compact.exe can never block on a full
-            // buffer while we move on.
             _ = proc.StandardOutput.ReadToEndAsync();
             _ = proc.StandardError.ReadToEndAsync();
+            proc.WaitForExit();
         }
         catch
         {

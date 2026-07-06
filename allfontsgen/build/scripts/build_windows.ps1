@@ -43,7 +43,10 @@ New-Item -ItemType Directory -Force -Path (Split-Path $gen_worker) | Out-Null
 
 $content = [System.IO.File]::ReadAllText($src_worker, [System.Text.Encoding]::UTF8)
 $T  = [char]9
-$NL = "`r`n"
+# The repo checks sources out with LF (.gitattributes eol=lf); a converted local
+# clone may have CRLF. Match whichever this file actually uses, or the textual
+# replacements below silently find nothing.
+$NL = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
 
 $old_inc = '#include "../graphics/pro/Fonts.h"' + $NL +
            '#include "../raster/BgraFrame.h"' + $NL +
@@ -76,6 +79,9 @@ $new_exit = $T + $T + 'if (applicationFonts == NULL)' + $NL +
             $T + '}' + $NL + '};'
 $content = $content.Replace($old_exit, $new_exit)
 
+if (-not $content.Contains('ALLFONTSGEN_DISABLE_THUMBNAILS')) {
+    Write-Error 'ApplicationFontsWorker.cpp patch did not apply -- upstream source drift? (see docs/08-maintenance.md)'
+}
 [System.IO.File]::WriteAllText($gen_worker, $content, [System.Text.Encoding]::UTF8)
 
 # --- read manifests ---
@@ -122,9 +128,10 @@ foreach ($source in $all_sources) {
     Write-Host "  CC  $source"
     $lang = if (([System.IO.Path]::GetExtension($source).ToLower()) -eq '.c') { '/TC' } else { '/TP' }
 
-    & cl.exe @cl_common $lang "/Fo$obj_path" $abs 2>&1 | Out-Null
+    $cl_output = & cl.exe @cl_common $lang "/Fo$obj_path" $abs 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "FAILED: $source"
+        $cl_output | ForEach-Object { Write-Host "    $_" }
         $n_failed++
     } else {
         [void]$obj_paths.Add($obj_path)
